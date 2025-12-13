@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap">
+<link rel="stylesheet" href="./style/base.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+    button {
+        @apply border-1 border-gray-900 cursor-pointer px-4 py-2 rounded-lg;
+    }
+    button:disabled {
+        @apply cursor-default opacity-50;
+    }
+    button:hover {
+        @apply bg-white border-white text-gray-700
+    }
+    img.crew-photo {
+        @apply mix-blend-overlay;
+        /* filter: blur(1px); */
+        /* filter: brightness(0.60); */
+        /* filter: invert(100%); */
+    }
+    input, textarea {
+        @apply bg-gray-700 border-1 border-gray-900 px-2 py-1 rounded-lg;
+    }
+    select {
+        @apply appearance-none border-1 border-gray-900 cursor-pointer pl-4 py-1 rounded-lg;
+    }
+    select:hover {
+        @apply bg-white border-white text-gray-700
+    }
+</style>
+<title>M·O·S·H</title>
+</head>
+<body class="bg-cathode cyan flex flex-col gap-6 h-screen">
+
+<header class="flex justify-between">
+    <p id="date">--/--/----</p>
+    <p id="site">-?-</p>
+    <p id="clock">--:-- GMT</p>
+</header>
+
+<!-- <nav></nav> -->
+
+<main class="flex flex-col gap-4 h-screen overflow-auto">
+
+    <section class="flex flex-wrap gap-4 justify-center w-full">
+        <div class="hidden bg-amber-600/25 rounded-xl" id="encounter-panel">
+            <div class="text-center">
+                <h3 class="border-b border-gray-900 py-2 text-xl">ENCOUNTER</h3>
+
+                <div class="py-4 text-8xl w-48 whitespace-nowrap">
+                    <i>⚠</i>
+                </div>
+            </div>
+            <div class="flex gap-4 justify-center pb-2 text-2xl">
+                <button class="cyan w-16" id="encounter-hide"><i>✖</i></button>
+            </div>
+        </div>
+
+        <div class="bg-cyan-600/25 rounded-xl" id="zone-panel">
+            <div class="text-center">
+                <h3 class="border-b border-gray-900 py-2 text-xl">ZONE</h3>
+
+                <div class="py-4 text-8xl w-48 whitespace-nowrap">
+                    <p id="zone">-?-</p>
+                </div>
+            </div>
+            <div class="flex gap-4 justify-center pb-2 text-2xl">
+                <button class="cyan w-16" disabled id="encounter-show"><i>⏺</i></button>
+                <button class="cyan w-16" id="zone-modal-show"><i>⮕</i></button>
+            </div>
+        </div>
+
+        <div class="bg-cyan-600/25 rounded-xl">
+            <div class="text-center">
+                <div class="border-b border-gray-900 flex flex-row justify-between px-4 py-2 text-xl">
+                    <div>
+                        <h3><span id="turn">000</span></h3>
+                    </div>
+                    <div>
+                        <span id="gravity">0g</span>
+                        <span id="light">🔅</span>
+                    </div>
+                </div>
+
+                <div class="px-1 text-9xl w-100 whitespace-nowrap">
+                    <p id="countdown">--:--</p>
+                </div>
+            </div>
+            <div class="flex gap-4 justify-center pb-2 text-2xl">
+                <button class="cyan w-16" disabled id="countdown-pause"><i>⏵</i></button>
+                <button class="cyan w-16" disabled id="countdown-skip"><i>⏭</i></button>
+
+                <select class="cyan text-sm w-16" id="countdown-speed">
+                    <option value="5.0">5.0&times;</option>
+                    <option value="2.0">2.0&times;</option>
+                    <option selected value="1.0">1.0&times;</option>
+                    <option value="0.5">0.5&times;</option>
+                    <option value="0.2">0.2&times;</option>
+                </select>
+
+                <button class="cyan w-16" id="countdown-sound"><i>🔇</i></button>
+            </div>
+        </div>
+
+        <!-- <div class="hidden bg-cyan-600/25 rounded-xl" id="environment-panel">
+            <div class="text-center">
+                <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
+
+                <div class="py-4 text-xl w-48 whitespace-nowrap">
+                    <p id="pressure">0.9 atm</p>
+                    <p id="oxygen">18% O₂</p>
+                    <p id="temperature">290 K</p>
+                    <p id="gravity">0.6 G</p>
+                </div>
+            </div>
+        </div> -->
+    </section>
+
+    <section class="hidden flex flex-wrap gap-4 justify-center w-full" id="crew-panels">
+        <div class="bg-cyan-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
+            <h3 class="border-b border-gray-900 py-2">LCP MINERVA</h3>
+
+            <div class="flex">
+                <div class="relative w-32">
+                    <img class="crew-photo w-32" src="./img/4D9N-5LOOQZ.png">
+                </div>
+
+                <ul class="flex flex-col gap-1 justify-between opacity-70 p-2 text-left w-16 whitespace-nowrap">
+                    <li class="amber">███▍</li>
+                    <li>██▍</li>
+                    <li class="ruby">█████</li>
+                    <li>▏</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="amber bg-amber-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
+            <h3 class="border-b border-gray-900 py-2">DR ZAHIR</h3>
+
+            <div class="flex">
+                <div class="relative w-32">
+                    <img class="crew-photo w-32" src="./img/CW01-241127.png">
+                </div>
+
+                <ul class="flex flex-col gap-1 justify-between p-2 text-right w-16 whitespace-nowrap">
+                    <li>37°C</li>
+                    <li class="pulse ruby">147 ♥</li>
+                    <li>.98O₂</li>
+                    <li>120mm</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="ruby bg-red-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
+            <h3 class="border-b border-gray-900 py-2">PVT LOUIS</h3>
+
+            <div class="flex">
+                <div class="overflow-hidden relative w-32">
+                    <img class="crew-photo w-32" src="./img/HR01-241127.png">
+                    <div class="absolute bg-red-900 block h-46 left-15 rotate-45 -top-7 w-2"></div>
+                    <div class="absolute bg-red-900 block h-46 left-15 -rotate-45 -top-7 w-2"></div>
+                </div>
+
+                <ul class="flex flex-col gap-1 justify-between p-2 text-right w-16 whitespace-nowrap">
+                    <li>---°C</li>
+                    <li>--- ♥</li>
+                    <li>---O₂</li>
+                    <li>---mm</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="pulse-2s bg-cyan-600/25 flex flex-col pb-4 rounded-xl text-center w-48 xhidden">
+            <h3 class="border-b border-gray-900 py-2">ÉGLE-2</h3>
+
+            <div class="flex">
+                <div class="relative w-32">
+                    <img class="crew-photo w-32" src="./img/LF01-241127.png">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="overflow-y-scroll">
+        <div class="flex flex-col-reverse gap-1 whitespace-nowrap" id="journal-entries">
+        </div>
+    </section>
+
+</main>
+
+<input id="comment" placeholder=">_">
+
+<footer class="flex justify-between">
+    <p class="ruby" id="countdown-state">⏹ STOPPED</p>
+    <p>🌐 MOSH 1.01</p>
+</footer>
+
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-700/50" id="zone-modal">
+    <div class="bg-cyan-900 rounded-lg shadow-xl max-w-md w-full mx-auto overflow-hidden">
+        <div class="flex justify-between items-center p-4 border-b border-cyan-200">
+            <h3 class="text-lg font-semibold">MOVE TO…</h3>
+        </div>
+
+        <div class="flex flex-col gap-4 p-6">
+            <div class="flex items-center">
+                <label class="mr-2" for="site-name">SITE:</label>
+                <input class="grow" id="site-name" maxlength="41" value="CLOUDBANK™ Synthetic Production Facility">
+            </div>
+            <div class="flex items-center">
+                <label class="mr-2" for="zone-name">ZONE:</label>
+                <input class="w-12" id="zone-name" maxlength="3" required>
+
+                <select class="ml-4 p-4 text-center" id="zone-gravity">
+                    <option value="0">0g</option>
+                    <option value="1">1g</option>
+                </select>
+
+                <select class="ml-4 p-4 text-center" id="zone-light">
+                    <option value="0">Dark</option>
+                    <option value="1">Dim</option>
+                    <option value="2">Bright</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex justify-end items-center p-4 border-t border-cyan-200 space-x-2">
+            <button id="zone-modal-cancel">CANCEL</button>
+            <button id="zone-modal-confirm">CONFIRM</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    const commentInput = document.getElementById('comment');
+    const countdownElement = document.getElementById('countdown');
+    const countdownPauseButton = document.getElementById('countdown-pause');
+    const countdownSkipButton = document.getElementById('countdown-skip');
+    const countdownSoundButton = document.getElementById('countdown-sound');
+    const countdownSpeedSelect = document.getElementById('countdown-speed');
+    const countdownStateDisplay = document.getElementById('countdown-state');
+    const encounterPanel = document.getElementById('encounter-panel');
+    const encounterShowButton = document.getElementById('encounter-show');
+    const journalEntries = document.getElementById('journal-entries');
+    const turnElement = document.getElementById('turn');
+    const zoneModal = document.getElementById('zone-modal');
+    const zoneNameInput = document.getElementById('zone-name');
+    const zonePanel = document.getElementById('zone-panel');
+
+    const clockInterval = 600_000; // 10 minutes
+    const clockOffset = 12_622_780_800_000; // 400 years (skip 3 leap days)
+    const clockInitialValue = Math.floor((Date.now() + clockOffset) / clockInterval) * clockInterval;
+
+    const countdownInterval = 1000; // milliseconds
+    const countdownResetValue = 600_000; // 10 minutes
+    const countdownWarningCritical = 10_000; // 10 seconds
+    const countdownWarningThreshold = 60_000; // 60 seconds
+    const lightStates = ['⚫', '🌓', '⚪'];
+
+    let clockValue = clockInitialValue;
+    let countdownValue = countdownResetValue;
+    let currentGravity = null;
+    let currentLight = null;
+    let currentSite = null;
+    let currentTurn = 0;
+    let currentZone = null;
+    let encounter = false;
+
+    let countdownIntervalTimer = null;
+
+    // ⏺/⏻/⏼/⏏
+    // ☀☀★☆☽⚓⛛⛭⛯☢☣❄■□◩⌖⌘◐○◎●
+    // 🌑🌓🌕🚨💡👁⚫⚪🫁🔅
+
+    // TODO encounter chance
+
+    // TODO atmosphere: 🫁 breathable, ⚠️ corrosive, ☠ toxic, 🚭 vacuum
+    // TODO extreme heat/cold
+    // TODO radiation = 1 trace, 2 acute, 3 lethal
+    // TODO fatigue
+
+    // TODO local storage - preserve state
+    // TODO Google Sheets connection?
+
+    function addJournalEntry(comment, style = null) {
+        const entry = document.createElement('p');
+
+        entry.innerText = [
+            formatDate(clockValue),
+            formatTime(clockValue),
+            currentZone,
+            comment,
+        ].join(' ');
+
+        if (style) {
+            entry.setAttribute('class', style);
+        }
+
+        journalEntries.appendChild(entry);
+    }
+
+    function advanceClock() {
+        let comment = commentInput.value.trim();
+
+        addJournalEntry(comment || 'NTR', (encounter && comment) ? 'amber' : null);
+
+        encounter = false;
+        commentInput.value = '';
+        clockValue += clockInterval;
+        countdownValue = countdownResetValue;
+        currentTurn++;
+
+        updateClock();
+        updateCountdown();
+    }
+
+    function expireCountdown() {
+        suspendCountdown();
+
+        if (Math.random() < 0.1) {
+            commentInput.value = 'Encounter ' + Math.floor(Math.random() * 10).toLocaleString().padStart(2, '0') + '.';
+            encounter = true;
+            updateEncounter();
+        } else {
+            advanceClock();
+            resumeCountdown();
+        }
+    }
+
+    function formatDate(value) {
+        return new Intl.DateTimeFormat(undefined, {
+            dateStyle: 'short',
+            timeZone: 'UTC'
+        }).format(value);
+    }
+
+    function formatTime(value) {
+        return new Intl.DateTimeFormat(undefined, {
+            timeStyle: 'short',
+            timeZone: 'UTC'
+        }).format(value);
+    }
+
+    function formatDateTime(value) {
+        return formatDate(value) + ' ' + formatTime(value);
+    }
+
+    function playTone(frequency, duration = 1, waveform = 'sine') {
+        if (audioContext?.state !== 'running') {
+            return;
+        }
+
+        const gainNode = audioContext.createGain();
+
+        gainNode.gain.value = 0.10; // 10%
+        gainNode.connect(audioContext.destination);
+
+        const oscillator = audioContext.createOscillator();
+
+        oscillator.frequency.value = frequency; // Hz
+        oscillator.type = waveform;
+        oscillator.connect(gainNode);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration); // seconds
+    }
+
+    function resumeCountdown() {
+        if (countdownIntervalTimer) {
+            return;
+        }
+
+        countdownPauseButton.innerText = '⏸';
+        countdownStateDisplay.innerText = '⏵ RUNNING';
+        countdownStateDisplay.setAttribute('class', 'green');
+        updateCountdown();
+
+        countdownIntervalTimer = window.setInterval(function () {
+            countdownValue -= countdownInterval * countdownSpeedSelect.value;
+
+            if (countdownValue <= 0) {
+                countdownValue = 0;
+                expireCountdown();
+            }
+
+            updateCountdown();
+        }, countdownInterval);
+    }
+
+    function suspendCountdown() {
+        if (! countdownIntervalTimer) {
+            return;
+        }
+
+        countdownPauseButton.innerText = '⏵';
+        countdownStateDisplay.innerText = '⏸ PAUSED';
+        countdownStateDisplay.setAttribute('class', 'amber');
+        window.clearInterval(countdownIntervalTimer);
+        countdownIntervalTimer = null;
+    }
+
+    function updateClock() {
+        document.getElementById('clock').innerText = formatTime(clockValue) + ' GMT';
+        document.getElementById('date').innerText = formatDate(clockValue);
+    }
+
+    function updateCountdown() {
+        if (countdownValue <= 0) {
+            countdownElement.setAttribute('class', 'ruby');
+            playTone(55, 1.0, 'square');
+        } else if (countdownValue <= countdownWarningCritical) {
+            countdownElement.setAttribute('class', 'amber blink');
+            playTone(220, 0.10, 'sawtooth');
+        } else if (countdownValue <= countdownWarningThreshold) {
+            countdownElement.setAttribute('class', 'amber');
+            playTone(440, 0.05, 'triangle');
+        } else {
+            countdownElement.removeAttribute('class');
+        }
+
+        let minutes = Math.floor(countdownValue / 60_000);
+        let seconds = Math.floor((countdownValue % 60_000) / 1000);
+
+        countdownElement.innerText = [
+            minutes.toLocaleString().padStart(2, '0'),
+            seconds.toLocaleString().padStart(2, '0'),
+        ].join(':');
+
+        turnElement.innerText = currentTurn.toLocaleString().padStart(3, '0');
+    }
+
+    function updateEncounter() {
+        countdownPauseButton.setAttribute('disabled', 'disabled');
+        countdownSkipButton.setAttribute('disabled', 'disabled');
+        encounterPanel.classList.remove('hidden');
+        zonePanel.classList.add('hidden');
+    }
+
+    function updateEnvironment() {
+        document.getElementById('gravity').innerText = currentGravity.toLocaleString() + 'g';
+        document.getElementById('light').innerText = lightStates[currentLight];
+        document.getElementById('site').innerText = currentSite;
+    }
+
+    function updateRoom() {
+        document.getElementById('zone').innerText = currentZone;
+    }
+
+    commentInput,addEventListener('keyup', function (e) {
+        if (e.which === 13) { // ENTER
+            let comment = commentInput.value.trim();
+
+            if (comment) {
+                addJournalEntry(comment, encounter ? 'amber' : null);
+            }
+
+            commentInput.value = '';
+        } else if (e.which === 27) { // ESC
+            commentInput.value = '';
+        }
+    });
+
+    countdownPauseButton.addEventListener('click', function () {
+        if (countdownIntervalTimer) {
+            suspendCountdown();
+        } else {
+            resumeCountdown();
+        }
+    });
+
+    countdownSkipButton.addEventListener('click', expireCountdown);
+
+    countdownSoundButton.addEventListener('click', function () {
+        if (audioContext?.state === 'running') {
+            audioContext.suspend();
+            countdownSoundButton.innerText = '🔇';
+        } else if (audioContext?.state === 'suspended') {
+            audioContext.resume();
+            countdownSoundButton.innerText = '🔈';
+        }
+    });
+
+    encounterShowButton.addEventListener('click', function () {
+        suspendCountdown();
+        encounter = true;
+        updateEncounter();
+    });
+
+    document.getElementById('encounter-hide').addEventListener('click', function () {
+        countdownPauseButton.removeAttribute('disabled');
+        countdownSkipButton.removeAttribute('disabled');
+        encounterPanel.classList.add('hidden');
+        zonePanel.classList.remove('hidden');
+        advanceClock();
+        resumeCountdown();
+    });
+
+    document.getElementById('zone-modal-cancel').addEventListener('click', function () {
+        zoneModal.classList.add('hidden');
+    });
+
+    document.getElementById('zone-modal-confirm').addEventListener('click', function () {
+        const zoneName = zoneNameInput.value.trim().toUpperCase();
+
+        if (! zoneName) {
+            zoneNameInput.focus();
+
+            return;
+        }
+
+        currentGravity = document.getElementById('zone-gravity').value;
+        currentLight = document.getElementById('zone-light').value;
+        currentSite = document.getElementById('site-name').value.trim();
+        updateEnvironment();
+
+        if (currentZone !== zoneName) {
+            if (currentZone === null) {
+                countdownPauseButton.removeAttribute('disabled');
+                countdownSkipButton.removeAttribute('disabled');
+                encounterShowButton.removeAttribute('disabled');
+            } else {
+                advanceClock();
+            }
+
+            currentZone = zoneName;
+            updateRoom();
+        }
+
+        zoneModal.classList.add('hidden');
+        resumeCountdown();
+    });
+
+    document.getElementById('zone-modal-show').addEventListener('click', function () {
+        zoneModal.classList.remove('hidden');
+        zoneNameInput.focus();
+        suspendCountdown();
+    });
+
+    window.addEventListener('load', function () {
+        updateClock();
+    });
+</script>
+<!-- <template></template> -->
+</body>
+</html>

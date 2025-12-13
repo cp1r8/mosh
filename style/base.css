@@ -1,0 +1,123 @@
+a:hover {
+    text-decoration: none;
+}
+
+body {
+    color: #f0f0f0;
+    font-family: "Kode Mono", monospace;
+    font-size: 16px;
+    margin: auto;
+    padding: 1rem;
+    min-width: 640px;
+}
+
+details > summary {
+  list-style: none;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+h2 {
+    margin-bottom: 1rem;
+}
+
+i {
+    font-style: normal;
+}
+
+p {
+    margin: 0;
+}
+
+.bg-cathode {
+    background-color: #282828;
+}
+
+/* amber theme */
+.amber {
+    color: #fff8f0;
+    text-shadow: 0 0 3px #ffc080, 0 0 10px #ff6600, 0 0 20px #ff6600, 0 0 30px #ff6600;
+}
+
+.amber a {
+    color: #ffc080;
+}
+
+/* cyan theme */
+.cyan {
+    color: #f0f8ff;
+    text-shadow: 0 0 3px #80f7ff, 0 0 10px #00f0ff, 0 0 20px #00f0ff, 0 0 30px #00f0ff;
+}
+
+.cyan a {
+    color: #80f7ff;
+}
+
+/* green theme */
+.green {
+    color: #f0fff8;
+    text-shadow: 0 0 3px #80ffc0, 0 0 10px #00ff66, 0 0 20px #00ff66, 0 0 30px #00ff66;
+}
+
+.green a {
+    color: #80ffc0;
+}
+
+/* ruby theme */
+.ruby {
+    color: #fff0f0;
+    text-shadow: 0 0 3px #ff8080, 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 30px #ff0000;
+}
+
+.ruby a {
+    color: #ff8080;
+}
+
+/** blink effect */
+.blink {
+    animation: 500ms blink step-end infinite;
+}
+
+.blink-1s {
+    animation: 1s blink step-end infinite;
+}
+
+.blink-2s {
+    animation: 2s blink step-end infinite;
+}
+
+@keyframes blink {
+    from, to {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
+/** pulse effect */
+.pulse {
+    animation: pulse 500ms infinite;
+}
+
+.pulse-1s {
+    animation: pulse 1s infinite;
+}
+
+.pulse-2s {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.333;
+    }
+    100% {
+        opacity: 1;
+    }
+}
