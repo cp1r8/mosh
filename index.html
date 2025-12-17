@@ -108,19 +108,6 @@
                 <button class="cyan w-16" id="countdown-sound"><i>🔇</i></button>
             </div>
         </div>
-
-        <!-- <div class="hidden bg-cyan-600/25 rounded-xl" id="environment-panel">
-            <div class="text-center">
-                <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
-
-                <div class="py-4 text-xl w-48 whitespace-nowrap">
-                    <p id="pressure">0.9 atm</p>
-                    <p id="oxygen">18% O₂</p>
-                    <p id="temperature">290 K</p>
-                    <p id="gravity">0.6 G</p>
-                </div>
-            </div>
-        </div> -->
     </section>
 
     <section class="hidden flex flex-wrap gap-4 justify-center w-full" id="crew-panels">
@@ -217,7 +204,7 @@
                 <label class="mr-2" for="zone-name">ZONE:</label>
                 <input class="w-14" id="zone-name" maxlength="3" required>
 
-                <label class="ml-8 mr-4" for="zone-light">ATMO:</label>
+                <label class="ml-10 mr-2" for="zone-light">ATMO:</label>
                 <select class="p-4 text-center w-full" id="zone-environment">
                     <option value="breathable">Breathable</option>
                     <option value="corrosive">Corrosive</option>
@@ -240,6 +227,13 @@
                     <option value="dark">Dark</option>
                     <option value="dim">Dim</option>
                 </select>
+            </div>
+            <div>
+                <input class="w-full" id="zone-encounter" max="1.0" min="0.0" step="0.05" type="range" value="0.1">
+            </div>
+            <div class="flex items-center">
+                <label class="mr-2" for="zone-encounter-percent">%ENC:</label>
+                <output class="w-14" id="zone-encounter-percent">10</output>
             </div>
         </div>
 
@@ -264,6 +258,7 @@
     const encounterShowButton = document.getElementById('encounter-show');
     const journalEntries = document.getElementById('journal-entries');
     const turnElement = document.getElementById('turn');
+    const zoneEncounterInput = document.getElementById('zone-encounter');
     const zoneModal = document.getElementById('zone-modal');
     const zoneNameInput = document.getElementById('zone-name');
     const zonePanel = document.getElementById('zone-panel');
@@ -296,6 +291,7 @@
 
     let clockValue = clockInitialValue;
     let countdownValue = countdownResetValue;
+    let currentEncounterRate = null;
     let currentEnvironment = null;
     let currentGravity = null;
     let currentLight = null;
@@ -310,8 +306,7 @@
     // ☀☀★☆☽⚓⛛⛭⛯☢☣❄■□◩⌖⌘◐○◎●
     // 🚨💡👁
 
-    // TODO encounter chance
-    // TODO radiation = 1 trace, 2 acute, 3 lethal
+    // TODO radiation = 0 none, 1 trace, 2 acute, 3 lethal
     // TODO fatigue
 
     // TODO local storage - preserve state
@@ -352,7 +347,7 @@
     function expireCountdown() {
         suspendCountdown();
 
-        if (Math.random() < 0.1) {
+        if (Math.random() < currentEncounterRate) {
             commentInput.value = 'Encounter ' + Math.floor(Math.random() * 10).toLocaleString().padStart(2, '0') + '.';
             encounter = true;
             updateEncounter();
@@ -518,6 +513,10 @@
         updateEncounter();
     });
 
+    zoneEncounterInput.addEventListener('change', function () {
+        document.getElementById('zone-encounter-percent').innerText = zoneEncounterInput.value * 100;
+    });
+
     document.getElementById('encounter-hide').addEventListener('click', function () {
         countdownPauseButton.removeAttribute('disabled');
         countdownSkipButton.removeAttribute('disabled');
@@ -552,6 +551,7 @@
             }
         }
 
+        currentEncounterRate = zoneEncounterInput.value;
         currentEnvironment = document.getElementById('zone-environment').value;
         currentGravity = document.getElementById('zone-gravity').value;
         currentLight = document.getElementById('zone-light').value;
