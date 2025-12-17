@@ -39,9 +39,8 @@
 <body class="bg-cathode cyan flex flex-col gap-6 h-screen">
 
 <header class="flex justify-between">
-    <p id="date">--/--/----</p>
-    <p id="site">-?-</p>
-    <p id="clock">--:-- GMT</p>
+    <p id="clock">--/--/---- --:-- GMT</p>
+    <p class="ruby" id="countdown-state">⏹ STOPPED</p>
 </header>
 
 <!-- <nav></nav> -->
@@ -78,13 +77,15 @@
 
         <div class="bg-cyan-600/25 rounded-xl">
             <div class="text-center">
-                <div class="border-b border-gray-900 flex flex-row justify-between px-4 py-2 text-xl">
+                <div class="border-b border-gray-900 grid grid-cols-3 px-4 py-2 text-xl">
+                    <div class="text-left">
+                        <span id="environment">😐</span>
+                    </div>
                     <div>
                         <h3><span id="turn">000</span></h3>
                     </div>
-                    <div>
+                    <div class="text-right">
                         <span id="gravity">🪶</span>
-                        <span id="environment">😐</span>
                         <span id="light">⚫</span>
                     </div>
                 </div>
@@ -182,11 +183,8 @@
 
 </main>
 
-<input id="comment" placeholder=">_">
-
-<footer class="flex justify-between">
-    <p class="ruby" id="countdown-state">⏹ STOPPED</p>
-    <p>🌐 MOSH 1.01</p>
+<footer>
+    <input class="w-full" id="comment" placeholder=">_">
 </footer>
 
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-700/50" id="zone-modal">
@@ -196,10 +194,6 @@
         </div>
 
         <div class="flex flex-col gap-4 p-6">
-            <div class="flex items-center">
-                <label class="mr-2" for="site-name">SITE:</label>
-                <input class="grow" id="site-name" maxlength="41" value="CLOUDBANK™ Synthetic Production Facility">
-            </div>
             <div class="flex items-center">
                 <label class="mr-2" for="zone-name">ZONE:</label>
                 <input class="w-14" id="zone-name" maxlength="3" required>
@@ -295,7 +289,6 @@
     let currentEnvironment = null;
     let currentGravity = null;
     let currentLight = null;
-    let currentSite = null;
     let currentTurn = 0;
     let currentZone = null;
     let encounter = false;
@@ -423,14 +416,17 @@
 
         countdownPauseButton.innerText = '⏵';
         countdownStateDisplay.innerText = '⏸ PAUSED';
-        countdownStateDisplay.setAttribute('class', 'amber');
+        countdownStateDisplay.setAttribute('class', 'amber blink-1s');
         window.clearInterval(countdownIntervalTimer);
         countdownIntervalTimer = null;
     }
 
     function updateClock() {
-        document.getElementById('clock').innerText = formatTime(clockValue) + ' GMT';
-        document.getElementById('date').innerText = formatDate(clockValue);
+        document.getElementById('clock').innerText = [
+            formatDate(clockValue),
+            formatTime(clockValue),
+            'GMT',
+        ].join(' ');
     }
 
     function updateCountdown() {
@@ -469,7 +465,6 @@
         document.getElementById('environment').innerText = environmentStates[currentEnvironment];
         document.getElementById('gravity').innerText = gravityStates[currentGravity];
         document.getElementById('light').innerText = lightStates[currentLight];
-        document.getElementById('site').innerText = currentSite;
         document.getElementById('zone').innerText = currentZone;
     }
 
@@ -555,7 +550,6 @@
         currentEnvironment = document.getElementById('zone-environment').value;
         currentGravity = document.getElementById('zone-gravity').value;
         currentLight = document.getElementById('zone-light').value;
-        currentSite = document.getElementById('site-name').value.trim();
         currentZone = zoneName;
         updateEnvironment();
         resumeCountdown();
