@@ -83,8 +83,9 @@
                         <h3><span id="turn">000</span></h3>
                     </div>
                     <div>
-                        <span id="gravity">0g</span>
-                        <span id="light">🔅</span>
+                        <span id="environment">🌀</span>
+                        <span id="gravity">🪶</span>
+                        <span id="light">⚫</span>
                     </div>
                 </div>
 
@@ -214,17 +215,30 @@
             </div>
             <div class="flex items-center">
                 <label class="mr-2" for="zone-name">ZONE:</label>
-                <input class="w-12" id="zone-name" maxlength="3" required>
+                <input class="w-14" id="zone-name" maxlength="3" required>
 
-                <select class="ml-4 p-4 text-center" id="zone-gravity">
+                <label class="ml-8 mr-4" for="zone-light">ATMO:</label>
+                <select class="p-4 text-center w-full" id="zone-environment">
+                    <option value="breathable">Breathable</option>
+                    <option value="corrosive">Corrosive</option>
+                    <option value="extreme_cold">Extreme cold</option>
+                    <option value="extreme_heat">Extreme heat</option>
+                    <option value="toxic">Toxic</option>
+                    <option value="vacuum">Vacuum</option>
+                </select>
+            </div>
+            <div class="flex items-center">
+                <label class="mr-2" for="zone-gravity">GRAV:</label>
+                <select class="p-4 text-center" id="zone-gravity">
                     <option value="0">0g</option>
                     <option value="1">1g</option>
                 </select>
 
-                <select class="ml-4 p-4 text-center" id="zone-light">
-                    <option value="0">Dark</option>
-                    <option value="1">Dim</option>
-                    <option value="2">Bright</option>
+                <label class="ml-8 mr-2" for="zone-light">LIGHT:</label>
+                <select class="p-4 text-center w-full" id="zone-light">
+                    <option value="bright">Bright</option>
+                    <option value="dark">Dark</option>
+                    <option value="dim">Dim</option>
                 </select>
             </div>
         </div>
@@ -262,10 +276,27 @@
     const countdownResetValue = 600_000; // 10 minutes
     const countdownWarningCritical = 10_000; // 10 seconds
     const countdownWarningThreshold = 60_000; // 60 seconds
-    const lightStates = ['⚫', '🌓', '⚪'];
+    
+    const environmentStates = {
+        breathable: '🌀',
+        corrosive: '⚠️',
+        extreme_cold: '🧊',
+        extreme_heat: '🔥',
+        toxic: '💀',
+        vacuum: '🌌',
+    };
+
+    const gravityStates = ['🪶', '🪨'];
+
+    const lightStates = {
+        bright: '⚪',
+        dark: '⚫',
+        dim: '🌓',
+    };
 
     let clockValue = clockInitialValue;
     let countdownValue = countdownResetValue;
+    let currentEnvironment = null;
     let currentGravity = null;
     let currentLight = null;
     let currentSite = null;
@@ -277,12 +308,9 @@
 
     // ⏺/⏻/⏼/⏏
     // ☀☀★☆☽⚓⛛⛭⛯☢☣❄■□◩⌖⌘◐○◎●
-    // 🌑🌓🌕🚨💡👁⚫⚪🫁🔅
+    // 🚨💡👁
 
     // TODO encounter chance
-
-    // TODO atmosphere: 🫁 breathable, ⚠️ corrosive, ☠ toxic, 🚭 vacuum
-    // TODO extreme heat/cold
     // TODO radiation = 1 trace, 2 acute, 3 lethal
     // TODO fatigue
 
@@ -443,12 +471,10 @@
     }
 
     function updateEnvironment() {
-        document.getElementById('gravity').innerText = currentGravity.toLocaleString() + 'g';
+        document.getElementById('environment').innerText = environmentStates[currentEnvironment];
+        document.getElementById('gravity').innerText = gravityStates[currentGravity];
         document.getElementById('light').innerText = lightStates[currentLight];
         document.getElementById('site').innerText = currentSite;
-    }
-
-    function updateRoom() {
         document.getElementById('zone').innerText = currentZone;
     }
 
@@ -514,10 +540,7 @@
             return;
         }
 
-        currentGravity = document.getElementById('zone-gravity').value;
-        currentLight = document.getElementById('zone-light').value;
-        currentSite = document.getElementById('site-name').value.trim();
-        updateEnvironment();
+        zoneModal.classList.add('hidden');
 
         if (currentZone !== zoneName) {
             if (currentZone === null) {
@@ -527,12 +550,14 @@
             } else {
                 advanceClock();
             }
-
-            currentZone = zoneName;
-            updateRoom();
         }
 
-        zoneModal.classList.add('hidden');
+        currentEnvironment = document.getElementById('zone-environment').value;
+        currentGravity = document.getElementById('zone-gravity').value;
+        currentLight = document.getElementById('zone-light').value;
+        currentSite = document.getElementById('site-name').value.trim();
+        currentZone = zoneName;
+        updateEnvironment();
         resumeCountdown();
     });
 
