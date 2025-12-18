@@ -7,8 +7,8 @@ body {
     font-family: "Kode Mono", monospace;
     font-size: 16px;
     margin: auto;
+    min-width: 480px;
     padding: 1rem;
-    min-width: 840px;
 }
 
 details > summary {
@@ -24,6 +24,7 @@ h2 {
 }
 
 i {
+    font-family: "Noto Emoji", sans-serif;
     font-style: normal;
 }
 

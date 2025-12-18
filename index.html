@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Emoji:wght@300..700&display=swap">
 <link rel="stylesheet" href="./style/base.css">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <style type="text/tailwindcss">
@@ -48,16 +49,51 @@
 <main class="flex flex-col gap-2 h-screen overflow-auto">
 
     <section class="flex flex-wrap gap-2 justify-center w-full">
+        <div class="bg-cyan-600/25 rounded-xl">
+            <div class="text-center">
+                <div class="border-b border-gray-900 px-4 py-2 text-xl">
+                    <h3><span id="turn">000</span></h3>
+                </div>
+
+                <div class="px-1 text-9xl w-98 whitespace-nowrap">
+                    <p id="countdown">--:--</p>
+                </div>
+            </div>
+            <div class="flex gap-4 justify-center pb-2 text-2xl">
+                <select class="cyan text-sm w-16" id="countdown-speed">
+                    <option value="5.0">5.0&times;</option>
+                    <option value="2.0">2.0&times;</option>
+                    <option selected value="1.0">1.0&times;</option>
+                    <option value="0.5">0.5&times;</option>
+                    <option value="0.2">0.2&times;</option>
+                </select>
+
+                <button class="cyan w-16" disabled id="countdown-pause">
+                    <i>⏯︎</i>
+                </button>
+
+                <button class="cyan w-16" disabled id="countdown-skip">
+                    <i>⏭︎</i>
+                </button>
+
+                <button class="cyan w-16" id="countdown-sound">
+                    <i>🔕</i>
+                </button>
+            </div>
+        </div>
+
         <div class="hidden bg-amber-600/25 rounded-xl" id="encounter-panel">
             <div class="text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENCOUNTER</h3>
 
                 <div class="py-4 text-8xl w-48 whitespace-nowrap">
-                    <i>⚠</i>
+                    <i>✋</i>
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
-                <button class="cyan w-16" id="encounter-hide"><i>✖</i></button>
+                <button class="cyan w-16" id="encounter-hide">
+                    <i>❌</i>
+                </button>
             </div>
         </div>
 
@@ -70,34 +106,12 @@
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
-                <button class="cyan w-16" disabled id="encounter-show"><i>⏺</i></button>
-                <button class="cyan w-16" id="zone-modal-show"><i>⮕</i></button>
-            </div>
-        </div>
-
-        <div class="bg-cyan-600/25 rounded-xl">
-            <div class="text-center">
-                <div class="border-b border-gray-900 px-4 py-2 text-xl">
-                    <h3><span id="turn">000</span></h3>
-                </div>
-
-                <div class="px-1 text-9xl w-98 whitespace-nowrap">
-                    <p id="countdown">--:--</p>
-                </div>
-            </div>
-            <div class="flex gap-4 justify-center pb-2 text-2xl">
-                <button class="cyan w-16" disabled id="countdown-pause"><i>⏵</i></button>
-                <button class="cyan w-16" disabled id="countdown-skip"><i>⏭</i></button>
-
-                <select class="cyan text-sm w-16" id="countdown-speed">
-                    <option value="5.0">5.0&times;</option>
-                    <option value="2.0">2.0&times;</option>
-                    <option selected value="1.0">1.0&times;</option>
-                    <option value="0.5">0.5&times;</option>
-                    <option value="0.2">0.2&times;</option>
-                </select>
-
-                <button class="cyan w-16" id="countdown-sound"><i>🔇</i></button>
+                <button class="cyan w-16" disabled id="encounter-show">
+                    <i>✋</i>
+                </button>
+                <button class="cyan w-16" id="zone-modal-show">
+                    <i>⮕</i>
+                </button>
             </div>
         </div>
 
@@ -106,12 +120,13 @@
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
 
                 <div class="py-4 text-8xl w-48 whitespace-nowrap">
-                    <span id="environment">😑</span>
+                    <i id="environment">😑</i>
                 </div>
             </div>
-            <div class="flex gap-4 justify-evenly py-2 text-3xl">
-                <span id="gravity">🪶</span>
-                <span id="light">⚫</span>
+            <div class="flex gap-4 justify-evenly m-2 pt-1 text-2xl">
+                <i id="gravity">⚓</i>
+                <i id="radiation">⋯</i>
+                <i id="light">🔅</i>
             </div>
         </div>
     </section>
@@ -125,7 +140,7 @@
                     <img class="crew-photo w-32" src="./img/4D9N-5LOOQZ.png">
                 </div>
 
-                <ul class="flex flex-col gap-1 justify-between p-2 text-right w-16 whitespace-nowrap">
+                <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
                     <li>36°C</li>
                     <li>70 ♥</li>
                     <li>.99O₂</li>
@@ -142,7 +157,7 @@
                     <img class="crew-photo w-32" src="./img/CW01-241127.png">
                 </div>
 
-                <ul class="flex flex-col gap-1 justify-between p-2 text-right w-16 whitespace-nowrap">
+                <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
                     <li>37°C</li>
                     <li class="pulse ruby">147 ♥</li>
                     <li>.97O₂</li>
@@ -161,7 +176,7 @@
                     <div class="absolute bg-red-900 block h-46 left-15 -rotate-45 -top-7 w-2"></div>
                 </div>
 
-                <ul class="flex flex-col gap-1 justify-between p-2 text-right w-16 whitespace-nowrap">
+                <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
                     <li>---°C</li>
                     <li>--- ♥</li>
                     <li>---O₂</li>
@@ -178,7 +193,7 @@
                     <img class="crew-photo w-32" src="./img/LF01-241127.png">
                 </div>
 
-                <ul class="flex flex-col gap-1 justify-between opacity-70 p-2 text-left w-16 whitespace-nowrap">
+                <ul class="flex flex-col gap-2 justify-between pl-2 pt-2 text-left w-16 whitespace-nowrap">
                     <li class="amber">███▍</li>
                     <li>██▍</li>
                     <li class="ruby">█████</li>
@@ -201,45 +216,49 @@
 
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-700/50" id="zone-modal">
     <div class="bg-cyan-900 rounded-lg shadow-xl max-w-md w-full mx-auto overflow-hidden">
-        <div class="flex justify-between items-center p-4 border-b border-cyan-200">
-            <h3 class="text-lg font-semibold">MOVE TO…</h3>
+        <div class="flex gap-4 items-center p-4 border-b border-cyan-200">
+            <h3 class="text-lg font-semibold">MOVE TO:</h3>
+            <input class="w-14" id="zone-name" maxlength="3" required>
         </div>
 
         <div class="flex flex-col gap-4 p-6">
             <div class="flex items-center">
-                <label class="mr-2" for="zone-name">ZONE:</label>
-                <input class="w-14" id="zone-name" maxlength="3" required>
-
-                <label class="ml-10 mr-2" for="zone-light">ATMO:</label>
+                <label class="mr-2" for="zone-light">ATMOSPHERE:</label>
                 <select class="p-4 text-center w-full" id="zone-environment">
                     <option value="breathable">Breathable</option>
                     <option value="corrosive">Corrosive</option>
                     <option value="extreme_cold">Extreme cold</option>
                     <option value="extreme_heat">Extreme heat</option>
+                    <option value="hypoxic">Hypoxic</option>
                     <option value="toxic">Toxic</option>
                     <option value="vacuum">Vacuum</option>
                 </select>
             </div>
             <div class="flex items-center">
-                <label class="mr-2" for="zone-gravity">GRAV:</label>
-                <select class="p-4 text-center" id="zone-gravity">
-                    <option value="0">0g</option>
-                    <option value="1">1g</option>
+                <label class="mr-2" for="zone-radiation">RADIATION:</label>
+                <select class="p-4 text-center w-full" id="zone-radiation">
+                    <option value="trace">Trace</option>
+                    <option value="acute">Acute</option>
+                    <option value="lethal">Lethal</option>
                 </select>
-
-                <label class="ml-8 mr-2" for="zone-light">LIGHT:</label>
+            </div>
+            <div class="flex items-center">
+                <label class="mr-2" for="zone-light">LIGHT:</label>
                 <select class="p-4 text-center w-full" id="zone-light">
                     <option value="bright">Bright</option>
                     <option value="dark">Dark</option>
                     <option value="dim">Dim</option>
                 </select>
-            </div>
-            <div>
-                <input class="w-full" id="zone-encounter" max="1.0" min="0.0" step="0.05" type="range" value="0.1">
+
+                <label class="ml-4 mr-2" for="zone-gravity">GRAVITY:</label>
+                <select class="p-4 text-center" id="zone-gravity">
+                    <option value="0">0g</option>
+                    <option value="1">1g</option>
+                </select>
             </div>
             <div class="flex items-center">
-                <label class="mr-2" for="zone-encounter-percent">%ENC:</label>
-                <output class="w-14" id="zone-encounter-percent">10</output>
+                <label class="mr-2" for="zone-encounter">%ENC:</label>
+                <input class="w-full" id="zone-encounter" max="1.0" min="0.0" step="0.05" type="range" value="0.1">
             </div>
         </div>
 
@@ -264,7 +283,6 @@
     const encounterShowButton = document.getElementById('encounter-show');
     const journalEntries = document.getElementById('journal-entries');
     const turnElement = document.getElementById('turn');
-    const zoneEncounterInput = document.getElementById('zone-encounter');
     const zoneModal = document.getElementById('zone-modal');
     const zoneNameInput = document.getElementById('zone-name');
     const zonePanel = document.getElementById('zone-panel');
@@ -283,16 +301,26 @@
         corrosive: '🫠',
         extreme_cold: '🥶',
         extreme_heat: '🥵',
-        toxic: '🤮',
+        hypoxic: '😩', // 😫
+        toxic: '🤮', // ☠
         vacuum: '😵', // 😱
     };
 
-    const gravityStates = ['🪶', '🪨'];
+    const gravityStates = [
+        '🪶',
+        '⚓', // 🪨
+    ];
 
     const lightStates = {
-        bright: '⚪',
-        dark: '⚫',
-        dim: '🌙',
+        bright: '🔆', // 🌞🌑⚪●
+        dark: '🌕', // 🔦👀👁⚫○
+        dim: '🌙', // 🌖
+    };
+
+    const radiationStates = {
+        trace: '⋯', // 🟡⚪●
+        acute: '☢', // ✳︎⚠︎
+        lethal: '☠', // 🔥‼︎💀
     };
 
     let clockValue = clockInitialValue;
@@ -301,6 +329,7 @@
     let currentEnvironment = null;
     let currentGravity = null;
     let currentLight = null;
+    let currentRadiation = null;
     let currentTurn = 0;
     let currentZone = null;
     let encounter = false;
@@ -311,10 +340,10 @@
     // ☀☀★☆☽⚓⛛⛭⛯☢☣❄■□◩⌖⌘◐○◎●
     // 🚨💡👁
 
-    // TODO radiation = 0 none, 1 trace, 2 acute, 3 lethal
-    // TODO fatigue
+    // TODO fatigue/exhaustion
 
-    // TODO local storage - preserve state
+    // TODO local storage - preserve environment…
+    // window.localStorage.getItem / setItem / removeItem / clear
     // TODO Google Sheets connection?
 
     function addJournalEntry(comment, style = null) {
@@ -404,7 +433,7 @@
             return;
         }
 
-        countdownPauseButton.innerText = '⏸';
+        // countdownPauseButton.innerHTML = '<i>⏸</i>';
         countdownStateDisplay.innerText = '⏵ RUNNING';
         countdownStateDisplay.setAttribute('class', 'green');
         updateCountdown();
@@ -426,7 +455,7 @@
             return;
         }
 
-        countdownPauseButton.innerText = '⏵';
+        // countdownPauseButton.innerHTML = '<i>⏵</i>';
         countdownStateDisplay.innerText = '⏸ PAUSED';
         countdownStateDisplay.setAttribute('class', 'amber blink-1s');
         window.clearInterval(countdownIntervalTimer);
@@ -475,6 +504,7 @@
 
     function updateEnvironment() {
         document.getElementById('environment').innerText = environmentStates[currentEnvironment];
+        document.getElementById('radiation').innerText = radiationStates[currentRadiation];
         document.getElementById('gravity').innerText = gravityStates[currentGravity];
         document.getElementById('light').innerText = lightStates[currentLight];
         document.getElementById('zone').innerText = currentZone;
@@ -507,10 +537,10 @@
     countdownSoundButton.addEventListener('click', function () {
         if (audioContext?.state === 'running') {
             audioContext.suspend();
-            countdownSoundButton.innerText = '🔇';
+            countdownSoundButton.innerHTML = '<i>🔕</i>';
         } else if (audioContext?.state === 'suspended') {
             audioContext.resume();
-            countdownSoundButton.innerText = '🔈';
+            countdownSoundButton.innerHTML = '<i>🔔</i>';
         }
     });
 
@@ -518,10 +548,6 @@
         suspendCountdown();
         encounter = true;
         updateEncounter();
-    });
-
-    zoneEncounterInput.addEventListener('change', function () {
-        document.getElementById('zone-encounter-percent').innerText = zoneEncounterInput.value * 100;
     });
 
     document.getElementById('encounter-hide').addEventListener('click', function () {
@@ -558,8 +584,9 @@
             }
         }
 
-        currentEncounterRate = zoneEncounterInput.value;
+        currentEncounterRate = document.getElementById('zone-encounter').value;
         currentEnvironment = document.getElementById('zone-environment').value;
+        currentRadiation = document.getElementById('zone-radiation').value;
         currentGravity = document.getElementById('zone-gravity').value;
         currentLight = document.getElementById('zone-light').value;
         currentZone = zoneName;
