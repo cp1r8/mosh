@@ -45,9 +45,9 @@
 
 <!-- <nav></nav> -->
 
-<main class="flex flex-col gap-4 h-screen overflow-auto">
+<main class="flex flex-col gap-2 h-screen overflow-auto">
 
-    <section class="flex flex-wrap gap-4 justify-center w-full">
+    <section class="flex flex-wrap gap-2 justify-center w-full">
         <div class="hidden bg-amber-600/25 rounded-xl" id="encounter-panel">
             <div class="text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENCOUNTER</h3>
@@ -77,20 +77,11 @@
 
         <div class="bg-cyan-600/25 rounded-xl">
             <div class="text-center">
-                <div class="border-b border-gray-900 grid grid-cols-3 px-4 py-2 text-xl">
-                    <div class="text-left">
-                        <span id="environment">😐</span>
-                    </div>
-                    <div>
-                        <h3><span id="turn">000</span></h3>
-                    </div>
-                    <div class="text-right">
-                        <span id="gravity">🪶</span>
-                        <span id="light">⚫</span>
-                    </div>
+                <div class="border-b border-gray-900 px-4 py-2 text-xl">
+                    <h3><span id="turn">000</span></h3>
                 </div>
 
-                <div class="px-1 text-9xl w-100 whitespace-nowrap">
+                <div class="px-1 text-9xl w-98 whitespace-nowrap">
                     <p id="countdown">--:--</p>
                 </div>
             </div>
@@ -109,9 +100,23 @@
                 <button class="cyan w-16" id="countdown-sound"><i>🔇</i></button>
             </div>
         </div>
+
+        <div class="bg-cyan-600/25 rounded-xl" id="environment-panel">
+            <div class="text-center">
+                <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
+
+                <div class="py-4 text-8xl w-48 whitespace-nowrap">
+                    <span id="environment">😑</span>
+                </div>
+            </div>
+            <div class="flex gap-4 justify-evenly py-2 text-3xl">
+                <span id="gravity">🪶</span>
+                <span id="light">⚫</span>
+            </div>
+        </div>
     </section>
 
-    <section class="hidden flex flex-wrap gap-4 justify-center w-full" id="crew-panels">
+    <section class="hidden flex flex-wrap gap-2 justify-center w-full" id="crew-panels">
         <div class="bg-cyan-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
             <h3 class="border-b border-gray-900 py-2">LCP MINERVA</h3>
 
@@ -120,11 +125,11 @@
                     <img class="crew-photo w-32" src="./img/4D9N-5LOOQZ.png">
                 </div>
 
-                <ul class="flex flex-col gap-1 justify-between opacity-70 p-2 text-left w-16 whitespace-nowrap">
-                    <li class="amber">███▍</li>
-                    <li>██▍</li>
-                    <li class="ruby">█████</li>
-                    <li>▏</li>
+                <ul class="flex flex-col gap-1 justify-between p-2 text-right w-16 whitespace-nowrap">
+                    <li>36°C</li>
+                    <li>70 ♥</li>
+                    <li>.99O₂</li>
+                    <li>118mm</li>
                 </ul>
             </div>
         </div>
@@ -140,8 +145,8 @@
                 <ul class="flex flex-col gap-1 justify-between p-2 text-right w-16 whitespace-nowrap">
                     <li>37°C</li>
                     <li class="pulse ruby">147 ♥</li>
-                    <li>.98O₂</li>
-                    <li>120mm</li>
+                    <li>.97O₂</li>
+                    <li>135mm</li>
                 </ul>
             </div>
         </div>
@@ -172,6 +177,13 @@
                 <div class="relative w-32">
                     <img class="crew-photo w-32" src="./img/LF01-241127.png">
                 </div>
+
+                <ul class="flex flex-col gap-1 justify-between opacity-70 p-2 text-left w-16 whitespace-nowrap">
+                    <li class="amber">███▍</li>
+                    <li>██▍</li>
+                    <li class="ruby">█████</li>
+                    <li>▏</li>
+                </ul>
             </div>
         </div>
     </section>
@@ -267,12 +279,12 @@
     const countdownWarningThreshold = 60_000; // 60 seconds
     
     const environmentStates = {
-        breathable: '😀',
+        breathable: '🙂',
         corrosive: '🫠',
         extreme_cold: '🥶',
         extreme_heat: '🥵',
         toxic: '🤮',
-        vacuum: '😱',
+        vacuum: '😵', // 😱
     };
 
     const gravityStates = ['🪶', '🪨'];
