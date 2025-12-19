@@ -21,9 +21,6 @@
     }
     img.crew-photo {
         @apply mix-blend-overlay;
-        /* filter: blur(1px); */
-        /* filter: brightness(0.60); */
-        /* filter: invert(100%); */
     }
     input, textarea {
         @apply bg-gray-700 border-1 border-gray-900 px-2 py-1 rounded-lg;
@@ -35,27 +32,27 @@
         @apply bg-white border-white text-gray-700
     }
 </style>
-<title>M·O·S·H</title>
+<title>MOSH v1.01</title>
 </head>
-<body class="bg-cathode cyan flex flex-col gap-6 h-screen">
+<body class="bg-cathode cyan flex flex-col gap-4 h-screen">
 
 <header class="flex justify-between">
-    <p id="clock">--/--/---- --:-- GMT</p>
+    <p id="clock">--/--/---- --:--</p>
     <p class="ruby" id="countdown-state">⏹ STOPPED</p>
 </header>
 
 <!-- <nav></nav> -->
 
-<main class="flex flex-col gap-2 h-screen overflow-auto">
+<main class="flex flex-col gap-4 h-full min-h-1/3 overflow-auto">
 
-    <section class="flex flex-wrap gap-2 justify-center w-full">
+    <section class="flex flex-wrap gap-4 justify-center w-full">
         <div class="bg-cyan-600/25 rounded-xl">
             <div class="text-center">
                 <div class="border-b border-gray-900 px-4 py-2 text-xl">
                     <h3><span id="turn">000</span></h3>
                 </div>
 
-                <div class="px-1 text-9xl w-98 whitespace-nowrap">
+                <div class="px-1 text-9xl w-100 whitespace-nowrap">
                     <p id="countdown">--:--</p>
                 </div>
             </div>
@@ -79,6 +76,21 @@
                 <button class="cyan w-16" id="countdown-sound">
                     <i>🔕</i>
                 </button>
+            </div>
+        </div>
+
+        <div class="bg-cyan-600/25 rounded-xl" id="environment-panel">
+            <div class="text-center">
+                <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
+
+                <div class="py-4 text-8xl w-48 whitespace-nowrap">
+                    <i id="atmosphere">😑</i>
+                </div>
+            </div>
+            <div class="flex gap-4 justify-evenly m-2 pt-1 text-2xl">
+                <i id="gravity">⚓</i>
+                <i id="radiation">⋯</i>
+                <i id="light">🔅</i>
             </div>
         </div>
 
@@ -114,24 +126,9 @@
                 </button>
             </div>
         </div>
-
-        <div class="bg-cyan-600/25 rounded-xl" id="environment-panel">
-            <div class="text-center">
-                <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
-
-                <div class="py-4 text-8xl w-48 whitespace-nowrap">
-                    <i id="environment">😑</i>
-                </div>
-            </div>
-            <div class="flex gap-4 justify-evenly m-2 pt-1 text-2xl">
-                <i id="gravity">⚓</i>
-                <i id="radiation">⋯</i>
-                <i id="light">🔅</i>
-            </div>
-        </div>
     </section>
 
-    <section class="hidden flex flex-wrap gap-2 justify-center w-full" id="crew-panels">
+    <section class="hidden flex flex-wrap gap-4 justify-center w-full" id="crew-panels">
         <div class="bg-cyan-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
             <h3 class="border-b border-gray-900 py-2">LCP MINERVA</h3>
 
@@ -203,12 +200,11 @@
         </div>
     </section>
 
-    <section class="overflow-y-scroll">
-        <div class="flex flex-col-reverse gap-1 whitespace-nowrap" id="journal-entries">
-        </div>
-    </section>
-
 </main>
+
+<section class="grow min-h-1/4 overflow-y-scroll">
+    <div class="flex flex-col-reverse gap-1 whitespace-nowrap" id="journal-entries"></div>
+</section>
 
 <footer>
     <input class="w-full" id="comment" placeholder=">_">
@@ -218,13 +214,13 @@
     <div class="bg-cyan-900 rounded-lg shadow-xl max-w-md w-full mx-auto overflow-hidden">
         <div class="flex gap-4 items-center p-4 border-b border-cyan-200">
             <h3 class="text-lg font-semibold">MOVE TO:</h3>
-            <input class="w-14" id="zone-name" maxlength="3" required>
+            <input class="w-14" id="zone-input" maxlength="3" required>
         </div>
 
         <div class="flex flex-col gap-4 p-6">
             <div class="flex items-center">
                 <label class="mr-2" for="zone-light">ATMOSPHERE:</label>
-                <select class="p-4 text-center w-full" id="zone-environment">
+                <select class="p-4 text-center w-full" id="zone-atmosphere">
                     <option value="breathable">Breathable</option>
                     <option value="corrosive">Corrosive</option>
                     <option value="extreme_cold">Extreme cold</option>
@@ -252,13 +248,13 @@
 
                 <label class="ml-4 mr-2" for="zone-gravity">GRAVITY:</label>
                 <select class="p-4 text-center" id="zone-gravity">
-                    <option value="0">0g</option>
-                    <option value="1">1g</option>
+                    <option value="standard">1g</option>
+                    <option value="zero_g">0g</option>
                 </select>
             </div>
             <div class="flex items-center">
-                <label class="mr-2" for="zone-encounter">%ENC:</label>
-                <input class="w-full" id="zone-encounter" max="1.0" min="0.0" step="0.05" type="range" value="0.1">
+                <label class="mr-2" for="zone-encounter-rate">%ENC:</label>
+                <input class="w-full" id="zone-encounter-rate" max="1.0" min="0.0" step="0.05" type="range" value="0.1">
             </div>
         </div>
 
@@ -278,13 +274,12 @@
     const countdownSkipButton = document.getElementById('countdown-skip');
     const countdownSoundButton = document.getElementById('countdown-sound');
     const countdownSpeedSelect = document.getElementById('countdown-speed');
-    const countdownStateDisplay = document.getElementById('countdown-state');
+    const countdownStateElement = document.getElementById('countdown-state');
     const encounterPanel = document.getElementById('encounter-panel');
     const encounterShowButton = document.getElementById('encounter-show');
     const journalEntries = document.getElementById('journal-entries');
-    const turnElement = document.getElementById('turn');
+    const zoneInput = document.getElementById('zone-input');
     const zoneModal = document.getElementById('zone-modal');
-    const zoneNameInput = document.getElementById('zone-name');
     const zonePanel = document.getElementById('zone-panel');
 
     const clockInterval = 600_000; // 10 minutes
@@ -296,7 +291,7 @@
     const countdownWarningCritical = 10_000; // 10 seconds
     const countdownWarningThreshold = 60_000; // 60 seconds
     
-    const environmentStates = {
+    const atmosphereStates = {
         breathable: '🙂',
         corrosive: '🫠',
         extreme_cold: '🥶',
@@ -306,10 +301,10 @@
         vacuum: '😵', // 😱
     };
 
-    const gravityStates = [
-        '🪶',
-        '⚓', // 🪨
-    ];
+    const gravityStates = {
+        standard: '⚓', // 🪨
+        zero_g: '🪶',
+    };
 
     const lightStates = {
         bright: '🔆', // 🌞🌑⚪●
@@ -325,25 +320,17 @@
 
     let clockValue = clockInitialValue;
     let countdownValue = countdownResetValue;
-    let currentEncounterRate = null;
-    let currentEnvironment = null;
-    let currentGravity = null;
-    let currentLight = null;
-    let currentRadiation = null;
-    let currentTurn = 0;
-    let currentZone = null;
-    let encounter = false;
-
     let countdownIntervalTimer = null;
+    let currentTurn = 0;
+    let encounter = null;
+    let environment = null;
 
     // ⏺/⏻/⏼/⏏
     // ☀☀★☆☽⚓⛛⛭⛯☢☣❄■□◩⌖⌘◐○◎●
     // 🚨💡👁
 
+    // TODO depth gauge
     // TODO fatigue/exhaustion
-
-    // TODO local storage - preserve environment…
-    // window.localStorage.getItem / setItem / removeItem / clear
     // TODO Google Sheets connection?
 
     function addJournalEntry(comment, style = null) {
@@ -352,7 +339,7 @@
         entry.innerText = [
             formatDate(clockValue),
             formatTime(clockValue),
-            currentZone,
+            environment.zone,
             comment,
         ].join(' ');
 
@@ -366,24 +353,41 @@
     function advanceClock() {
         let comment = commentInput.value.trim();
 
-        addJournalEntry(comment || 'NTR', (encounter && comment) ? 'amber' : null);
+        if (! comment || comment.startsWith('/')) {
+            comment = encounter ? 'ENC' : 'NTR';
+        } else {
+            commentInput.value = '';
+        }
 
-        encounter = false;
-        commentInput.value = '';
+        addJournalEntry(comment, encounter ? 'amber' : null);
+
         clockValue += clockInterval;
         countdownValue = countdownResetValue;
         currentTurn++;
+        encounter = null;
 
         updateClock();
         updateCountdown();
     }
 
+    function enableCountdown() {
+        countdownPauseButton.removeAttribute('disabled');
+        countdownSkipButton.removeAttribute('disabled');
+        encounterShowButton.removeAttribute('disabled');
+    }
+
+    function execute(command) {
+        if (command === 'clear') {
+            window.localStorage.clear();
+        }
+    }
+
     function expireCountdown() {
         suspendCountdown();
 
-        if (Math.random() < currentEncounterRate) {
-            commentInput.value = 'Encounter ' + Math.floor(Math.random() * 10).toLocaleString().padStart(2, '0') + '.';
-            encounter = true;
+        if (Math.random() < environment.encounterRate) {
+            encounter = {roll: Math.floor(Math.random() * 10)};
+            commentInput.value = 'Encounter ' + encounter.roll.toLocaleString().padStart(2, '0');
             updateEncounter();
         } else {
             advanceClock();
@@ -434,8 +438,8 @@
         }
 
         // countdownPauseButton.innerHTML = '<i>⏸</i>';
-        countdownStateDisplay.innerText = '⏵ RUNNING';
-        countdownStateDisplay.setAttribute('class', 'green');
+        countdownStateElement.innerText = '⏵ RUNNING';
+        countdownStateElement.setAttribute('class', 'green');
         updateCountdown();
 
         countdownIntervalTimer = window.setInterval(function () {
@@ -456,8 +460,8 @@
         }
 
         // countdownPauseButton.innerHTML = '<i>⏵</i>';
-        countdownStateDisplay.innerText = '⏸ PAUSED';
-        countdownStateDisplay.setAttribute('class', 'amber blink-1s');
+        countdownStateElement.innerText = '⏸ PAUSED';
+        countdownStateElement.setAttribute('class', 'amber blink-1s');
         window.clearInterval(countdownIntervalTimer);
         countdownIntervalTimer = null;
     }
@@ -466,7 +470,6 @@
         document.getElementById('clock').innerText = [
             formatDate(clockValue),
             formatTime(clockValue),
-            'GMT',
         ].join(' ');
     }
 
@@ -492,7 +495,7 @@
             seconds.toLocaleString().padStart(2, '0'),
         ].join(':');
 
-        turnElement.innerText = currentTurn.toLocaleString().padStart(3, '0');
+        document.getElementById('turn').innerText = currentTurn.toLocaleString().padStart(3, '0');
     }
 
     function updateEncounter() {
@@ -503,18 +506,24 @@
     }
 
     function updateEnvironment() {
-        document.getElementById('environment').innerText = environmentStates[currentEnvironment];
-        document.getElementById('radiation').innerText = radiationStates[currentRadiation];
-        document.getElementById('gravity').innerText = gravityStates[currentGravity];
-        document.getElementById('light').innerText = lightStates[currentLight];
-        document.getElementById('zone').innerText = currentZone;
+        document.getElementById('atmosphere').innerText = atmosphereStates[environment.atmosphere];
+        document.getElementById('radiation').innerText = radiationStates[environment.radiation];
+        document.getElementById('gravity').innerText = gravityStates[environment.gravity];
+        document.getElementById('light').innerText = lightStates[environment.light];
+        document.getElementById('zone').innerText = environment.zone;
     }
 
     commentInput,addEventListener('keyup', function (e) {
         if (e.which === 13) { // ENTER
             let comment = commentInput.value.trim();
 
-            if (comment) {
+            if (! comment) {
+                return;
+            }
+            
+            if (comment.startsWith('/')) {
+                execute(comment.substr(1).toLocaleLowerCase());
+            } else {
                 addJournalEntry(comment, encounter ? 'amber' : null);
             }
 
@@ -536,17 +545,17 @@
 
     countdownSoundButton.addEventListener('click', function () {
         if (audioContext?.state === 'running') {
-            audioContext.suspend();
             countdownSoundButton.innerHTML = '<i>🔕</i>';
+            audioContext.suspend();
         } else if (audioContext?.state === 'suspended') {
-            audioContext.resume();
             countdownSoundButton.innerHTML = '<i>🔔</i>';
+            audioContext.resume();
         }
     });
 
     encounterShowButton.addEventListener('click', function () {
+        encounter = {roll: null};
         suspendCountdown();
-        encounter = true;
         updateEncounter();
     });
 
@@ -564,43 +573,50 @@
     });
 
     document.getElementById('zone-modal-confirm').addEventListener('click', function () {
-        const zoneName = zoneNameInput.value.trim().toUpperCase();
+        const zone = zoneInput.value.trim().toUpperCase();
 
-        if (! zoneName) {
-            zoneNameInput.focus();
+        if (! zone) {
+            zoneInput.focus();
 
             return;
         }
 
-        zoneModal.classList.add('hidden');
-
-        if (currentZone !== zoneName) {
-            if (currentZone === null) {
-                countdownPauseButton.removeAttribute('disabled');
-                countdownSkipButton.removeAttribute('disabled');
-                encounterShowButton.removeAttribute('disabled');
-            } else {
-                advanceClock();
-            }
+        if (environment === null) {
+            enableCountdown();
+        } else if (environment?.zone !== zone) {
+            advanceClock();
         }
+        
+        environment = {
+            encounterRate: document.getElementById('zone-encounter-rate').value,
+            atmosphere: document.getElementById('zone-atmosphere').value,
+            radiation: document.getElementById('zone-radiation').value,
+            gravity: document.getElementById('zone-gravity').value,
+            light: document.getElementById('zone-light').value,
+            zone: zone,
+        };
 
-        currentEncounterRate = document.getElementById('zone-encounter').value;
-        currentEnvironment = document.getElementById('zone-environment').value;
-        currentRadiation = document.getElementById('zone-radiation').value;
-        currentGravity = document.getElementById('zone-gravity').value;
-        currentLight = document.getElementById('zone-light').value;
-        currentZone = zoneName;
+        window.localStorage.setItem('mosh:environment', JSON.stringify(environment));
+        zoneModal.classList.add('hidden');
         updateEnvironment();
         resumeCountdown();
     });
 
     document.getElementById('zone-modal-show').addEventListener('click', function () {
         zoneModal.classList.remove('hidden');
-        zoneNameInput.focus();
+        zoneInput.focus();
         suspendCountdown();
     });
 
     window.addEventListener('load', function () {
+        let environmentData = window.localStorage.getItem('mosh:environment');
+
+        if (environmentData) {
+            environment = JSON.parse(environmentData);
+            updateEnvironment();
+            enableCountdown();
+        }
+
         updateClock();
     });
 </script>
