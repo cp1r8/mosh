@@ -89,7 +89,7 @@
             </div>
             <div class="flex gap-4 justify-evenly m-2 pt-1 text-2xl">
                 <i id="gravity-icon">⚓</i>
-                <i id="radiation-icon">⋯</i>
+                <i class="opacity-50" id="radiation-icon">☢</i>
                 <i id="light-icon">🔅</i>
             </div>
         </div>
@@ -285,10 +285,15 @@
     const lightIcon = document.getElementById('light-icon');
     const journalEntries = document.getElementById('journal-entries');
     const radiationIcon = document.getElementById('radiation-icon');
+    const zoneAtmosphere = document.getElementById('zone-atmosphere');
+    const zoneEncounterRate = document.getElementById('zone-encounter-rate');
+    const zoneGravity = document.getElementById('zone-gravity');
     const zoneInput = document.getElementById('zone-input');
     const zoneLabel = document.getElementById('zone-label');
+    const zoneLight = document.getElementById('zone-light');
     const zoneModal = document.getElementById('zone-modal');
     const zonePanel = document.getElementById('zone-panel');
+    const zoneRadiation = document.getElementById('zone-radiation');
 
     const clockEpoch = 12_622_780_800_000; // 400 years (skip 3 leap days)
     const clockInterval = 600_000; // 10 minutes
@@ -299,27 +304,30 @@
 
     const icons = {
         atmosphere: {
-            breathable: '🙂',
-            corrosive: '🫠',
-            extreme_cold: '🥶',
-            extreme_heat: '🥵',
-            hypoxic: '😩', // 😫
-            toxic: '🤮', // ☠
-            vacuum: '😵', // 😱
+            breathable: ['🙂'],
+            corrosive: ['⚠︎', 'amber'], // 🫠
+            extreme_cold: ['🥶', 'sapphire'],
+            extreme_heat: ['🥵', 'amber'],
+            hypoxic: ['😫', 'amber'], // 😩
+            toxic: ['☠', 'amber'], // 🤮
+            vacuum: ['😵', 'ruby'], // 😱
         },
+
         gravity: {
-            standard: '⚓', // 🪨
-            zero_g: '🪶',
+            standard: ['⚓'], // 🪨
+            zero_g: ['🪶', 'amber'],
         },
+
         light: {
-            bright: '🔆', // 🌞🌑⚪●
-            dark: '🌕', // 🔦👀👁⚫○
-            dim: '🌙', // 🌖
+            bright: ['🔆'], // 🌞🌑⚪●
+            dark: ['🌕', 'ruby pulse-2s'], // 🔦👀👁⚫○
+            dim: ['🌙', 'amber'], // 🌖
         },
+        
         radiation: {
-            trace: '⋯', // 🟡⚪●
-            acute: '☢', // ✳︎⚠︎
-            lethal: '☠', // 🔥‼︎💀
+            trace: ['☢', 'opacity-50'], // 🟡⚪●⋯
+            acute: ['☢', 'amber pulse-2s'], // ✳︎
+            lethal: ['☢', 'ruby pulse'], // 🔥‼︎💀☠
         },
     };
 
@@ -329,7 +337,6 @@
     let encounter = null;
     let environment = null;
 
-    // TODO icon colours
     // TODO store journal entries and "replay" on reload
     // TODO depth gauge
     // TODO fatigue/exhaustion
@@ -498,6 +505,16 @@
         ].join(':');
     }
 
+    function updateElement(element, text, style = null) {
+        element.innerText = text;
+
+        if (style) {
+            element.setAttribute('class', style);
+        } else {
+            element.removeAttribute('class');
+        }
+    }
+
     function updateEncounter() {
         countdownPause.setAttribute('disabled', 'disabled');
         countdownSkip.setAttribute('disabled', 'disabled');
@@ -506,19 +523,11 @@
     }
 
     function updateEnvironment() {
-        atmosphereIcon.innerText = icons.atmosphere[environment.atmosphere];
-        gravityIcon.innerText = icons.gravity[environment.gravity];
-        lightIcon.innerText = icons.light[environment.light];
-        radiationIcon.innerText = icons.radiation[environment.radiation];
+        updateElement(atmosphereIcon, ...icons.atmosphere[environment.atmosphere]);
+        updateElement(radiationIcon, ...icons.radiation[environment.radiation]);
+        updateElement(gravityIcon, ...icons.gravity[environment.gravity]);
+        updateElement(lightIcon, ...icons.light[environment.light]);
         zoneLabel.innerText = environment.zone;
-
-        if (environment.light === 'dark') {
-            lightIcon.setAttribute('class', 'ruby');
-        } else if (environment.light === 'dim') {
-            lightIcon.setAttribute('class', 'amber');
-        } else {
-            lightIcon.removeAttribute('class');
-        }
     }
 
     commentInput,addEventListener('keyup', function (e) {
@@ -604,11 +613,11 @@
         }
         
         environment = {
-            encounterRate: document.getElementById('zone-encounter-rate').value,
-            atmosphere: document.getElementById('zone-atmosphere').value,
-            radiation: document.getElementById('zone-radiation').value,
-            gravity: document.getElementById('zone-gravity').value,
-            light: document.getElementById('zone-light').value,
+            encounterRate: zoneEncounterRate.value,
+            atmosphere: zoneAtmosphere.value,
+            radiation: zoneRadiation.value,
+            gravity: zoneGravity.value,
+            light: zoneLight.value,
             zone: zone,
         };
 
@@ -638,6 +647,11 @@
 
         if (environmentData) {
             environment = JSON.parse(environmentData);
+            zoneEncounterRate.value = environment.encounterRate ?? 0.1;
+            zoneAtmosphere.value = environment.atmosphere ?? 'breathable';
+            zoneRadiation.value = environment.radiation ?? 'trace';
+            zoneGravity.value = environment.gravity ?? 'standard';
+            zoneLight.value = environment.light ?? 'bright';
             zoneInput.value = environment.zone ?? '';
             enableCountdownButtons();
             updateEnvironment();

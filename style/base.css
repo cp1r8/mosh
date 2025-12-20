@@ -76,6 +76,16 @@ p {
     color: #ff8080;
 }
 
+/* sapphire theme */
+.sapphire {
+    color: #c0c0ff;
+    text-shadow: 0 0 3px #8080ff, 0 0 10px #4040ff, 0 0 20px #4040ff, 0 0 30px #4040ff;
+}
+
+.sapphire a {
+    color: #8080ff;
+}
+
 /** blink effect */
 .blink {
     animation: 500ms blink step-end infinite;
