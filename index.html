@@ -53,7 +53,7 @@
                 </div>
 
                 <div class="px-1 text-9xl w-100 whitespace-nowrap">
-                    <p id="countdown">--:--</p>
+                    <p id="countdown-clock">--:--</p>
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
@@ -84,13 +84,13 @@
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
 
                 <div class="py-4 text-8xl w-48 whitespace-nowrap">
-                    <i id="atmosphere">😑</i>
+                    <i id="atmosphere-icon">😑</i>
                 </div>
             </div>
             <div class="flex gap-4 justify-evenly m-2 pt-1 text-2xl">
-                <i id="gravity">⚓</i>
-                <i id="radiation">⋯</i>
-                <i id="light">🔅</i>
+                <i id="gravity-icon">⚓</i>
+                <i id="radiation-icon">⋯</i>
+                <i id="light-icon">🔅</i>
             </div>
         </div>
 
@@ -103,8 +103,11 @@
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
-                <button class="cyan w-16" id="encounter-hide">
+                <button class="cyan w-16" id="encounter-dismiss">
                     <i>❌</i>
+                </button>
+                <button class="cyan w-16" id="encounter-resolve">
+                    <i>✔︎</i>
                 </button>
             </div>
         </div>
@@ -114,7 +117,7 @@
                 <h3 class="border-b border-gray-900 py-2 text-xl">ZONE</h3>
 
                 <div class="py-4 text-8xl w-48 whitespace-nowrap">
-                    <p id="zone">-?-</p>
+                    <p id="zone-label">-?-</p>
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
@@ -207,7 +210,7 @@
 </section>
 
 <footer>
-    <input class="w-full" id="comment" placeholder=">_">
+    <input class="w-full" id="comment-input" placeholder=">_">
 </footer>
 
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-700/50" id="zone-modal">
@@ -268,67 +271,66 @@
 <script>
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-    const commentInput = document.getElementById('comment');
-    const countdownElement = document.getElementById('countdown');
-    const countdownPauseButton = document.getElementById('countdown-pause');
-    const countdownSkipButton = document.getElementById('countdown-skip');
-    const countdownSoundButton = document.getElementById('countdown-sound');
-    const countdownSpeedSelect = document.getElementById('countdown-speed');
-    const countdownStateElement = document.getElementById('countdown-state');
+    const atmosphereIcon = document.getElementById('atmosphere-icon');
+    const commentInput = document.getElementById('comment-input');
+    const countdownClock = document.getElementById('countdown-clock');
+    const countdownPause = document.getElementById('countdown-pause');
+    const countdownSkip = document.getElementById('countdown-skip');
+    const countdownSound = document.getElementById('countdown-sound');
+    const countdownSpeed = document.getElementById('countdown-speed');
+    const countdownState = document.getElementById('countdown-state');
     const encounterPanel = document.getElementById('encounter-panel');
-    const encounterShowButton = document.getElementById('encounter-show');
+    const encounterShow = document.getElementById('encounter-show');
+    const gravityIcon = document.getElementById('gravity-icon');
+    const lightIcon = document.getElementById('light-icon');
     const journalEntries = document.getElementById('journal-entries');
+    const radiationIcon = document.getElementById('radiation-icon');
     const zoneInput = document.getElementById('zone-input');
+    const zoneLabel = document.getElementById('zone-label');
     const zoneModal = document.getElementById('zone-modal');
     const zonePanel = document.getElementById('zone-panel');
 
+    const clockEpoch = 12_622_780_800_000; // 400 years (skip 3 leap days)
     const clockInterval = 600_000; // 10 minutes
-    const clockOffset = 12_622_780_800_000; // 400 years (skip 3 leap days)
-    const clockInitialValue = Math.floor((Date.now() + clockOffset) / clockInterval) * clockInterval;
-
     const countdownInterval = 1000; // milliseconds
     const countdownResetValue = 600_000; // 10 minutes
     const countdownWarningCritical = 10_000; // 10 seconds
     const countdownWarningThreshold = 60_000; // 60 seconds
-    
-    const atmosphereStates = {
-        breathable: '🙂',
-        corrosive: '🫠',
-        extreme_cold: '🥶',
-        extreme_heat: '🥵',
-        hypoxic: '😩', // 😫
-        toxic: '🤮', // ☠
-        vacuum: '😵', // 😱
+
+    const icons = {
+        atmosphere: {
+            breathable: '🙂',
+            corrosive: '🫠',
+            extreme_cold: '🥶',
+            extreme_heat: '🥵',
+            hypoxic: '😩', // 😫
+            toxic: '🤮', // ☠
+            vacuum: '😵', // 😱
+        },
+        gravity: {
+            standard: '⚓', // 🪨
+            zero_g: '🪶',
+        },
+        light: {
+            bright: '🔆', // 🌞🌑⚪●
+            dark: '🌕', // 🔦👀👁⚫○
+            dim: '🌙', // 🌖
+        },
+        radiation: {
+            trace: '⋯', // 🟡⚪●
+            acute: '☢', // ✳︎⚠︎
+            lethal: '☠', // 🔥‼︎💀
+        },
     };
 
-    const gravityStates = {
-        standard: '⚓', // 🪨
-        zero_g: '🪶',
-    };
-
-    const lightStates = {
-        bright: '🔆', // 🌞🌑⚪●
-        dark: '🌕', // 🔦👀👁⚫○
-        dim: '🌙', // 🌖
-    };
-
-    const radiationStates = {
-        trace: '⋯', // 🟡⚪●
-        acute: '☢', // ✳︎⚠︎
-        lethal: '☠', // 🔥‼︎💀
-    };
-
-    let clockValue = clockInitialValue;
+    let clock = null;
+    let countdownTimer = null;
     let countdownValue = countdownResetValue;
-    let countdownIntervalTimer = null;
-    let currentTurn = 0;
     let encounter = null;
     let environment = null;
 
-    // ⏺/⏻/⏼/⏏
-    // ☀☀★☆☽⚓⛛⛭⛯☢☣❄■□◩⌖⌘◐○◎●
-    // 🚨💡👁
-
+    // TODO icon colours
+    // TODO store journal entries and "replay" on reload
     // TODO depth gauge
     // TODO fatigue/exhaustion
     // TODO Google Sheets connection?
@@ -337,8 +339,8 @@
         const entry = document.createElement('p');
 
         entry.innerText = [
-            formatDate(clockValue),
-            formatTime(clockValue),
+            formatDate(clock.time),
+            formatTime(clock.time),
             environment.zone,
             comment,
         ].join(' ');
@@ -361,19 +363,20 @@
 
         addJournalEntry(comment, encounter ? 'amber' : null);
 
-        clockValue += clockInterval;
-        countdownValue = countdownResetValue;
-        currentTurn++;
-        encounter = null;
-
+        clock.time += clockInterval;
+        clock.turn++;
+        window.localStorage.setItem('mosh:clock', JSON.stringify(clock));
         updateClock();
+
+        countdownValue = countdownResetValue;
+        encounter = null;
         updateCountdown();
     }
 
-    function enableCountdown() {
-        countdownPauseButton.removeAttribute('disabled');
-        countdownSkipButton.removeAttribute('disabled');
-        encounterShowButton.removeAttribute('disabled');
+    function enableCountdownButtons() {
+        countdownPause.removeAttribute('disabled');
+        countdownSkip.removeAttribute('disabled');
+        encounterShow.removeAttribute('disabled');
     }
 
     function execute(command) {
@@ -388,6 +391,7 @@
         if (Math.random() < environment.encounterRate) {
             encounter = {roll: Math.floor(Math.random() * 10)};
             commentInput.value = 'Encounter ' + encounter.roll.toLocaleString().padStart(2, '0');
+            playTone(660, 1.0, 'sine');
             updateEncounter();
         } else {
             advanceClock();
@@ -409,11 +413,7 @@
         }).format(value);
     }
 
-    function formatDateTime(value) {
-        return formatDate(value) + ' ' + formatTime(value);
-    }
-
-    function playTone(frequency, duration = 1, waveform = 'sine') {
+    function playTone(frequency, duration = 1.0, waveform = 'sine') {
         if (audioContext?.state !== 'running') {
             return;
         }
@@ -433,17 +433,17 @@
     }
 
     function resumeCountdown() {
-        if (countdownIntervalTimer) {
+        if (countdownTimer) {
             return;
         }
 
-        // countdownPauseButton.innerHTML = '<i>⏸</i>';
-        countdownStateElement.innerText = '⏵ RUNNING';
-        countdownStateElement.setAttribute('class', 'green');
+        // countdownPause.innerHTML = '<i>⏸</i>';
+        countdownState.innerText = '⏵ RUNNING';
+        countdownState.setAttribute('class', 'green');
         updateCountdown();
 
-        countdownIntervalTimer = window.setInterval(function () {
-            countdownValue -= countdownInterval * countdownSpeedSelect.value;
+        countdownTimer = window.setInterval(function () {
+            countdownValue -= countdownInterval * countdownSpeed.value;
 
             if (countdownValue <= 0) {
                 countdownValue = 0;
@@ -455,62 +455,70 @@
     }
 
     function suspendCountdown() {
-        if (! countdownIntervalTimer) {
+        if (! countdownTimer) {
             return;
         }
 
-        // countdownPauseButton.innerHTML = '<i>⏵</i>';
-        countdownStateElement.innerText = '⏸ PAUSED';
-        countdownStateElement.setAttribute('class', 'amber blink-1s');
-        window.clearInterval(countdownIntervalTimer);
-        countdownIntervalTimer = null;
+        // countdownPause.innerHTML = '<i>⏵</i>';
+        countdownState.innerText = '⏸ PAUSED';
+        countdownState.setAttribute('class', 'amber blink-1s');
+        window.clearInterval(countdownTimer);
+        countdownTimer = null;
     }
 
     function updateClock() {
         document.getElementById('clock').innerText = [
-            formatDate(clockValue),
-            formatTime(clockValue),
+            formatDate(clock.time),
+            formatTime(clock.time),
         ].join(' ');
+
+        document.getElementById('turn').innerText = clock.turn.toLocaleString().padStart(3, '0');
     }
 
     function updateCountdown() {
         if (countdownValue <= 0) {
-            countdownElement.setAttribute('class', 'ruby');
+            countdownClock.setAttribute('class', 'ruby');
             playTone(55, 1.0, 'square');
         } else if (countdownValue <= countdownWarningCritical) {
-            countdownElement.setAttribute('class', 'amber blink');
+            countdownClock.setAttribute('class', 'amber blink');
             playTone(220, 0.10, 'sawtooth');
         } else if (countdownValue <= countdownWarningThreshold) {
-            countdownElement.setAttribute('class', 'amber');
+            countdownClock.setAttribute('class', 'amber');
             playTone(440, 0.05, 'triangle');
         } else {
-            countdownElement.removeAttribute('class');
+            countdownClock.removeAttribute('class');
         }
 
         let minutes = Math.floor(countdownValue / 60_000);
         let seconds = Math.floor((countdownValue % 60_000) / 1000);
 
-        countdownElement.innerText = [
+        countdownClock.innerText = [
             minutes.toLocaleString().padStart(2, '0'),
             seconds.toLocaleString().padStart(2, '0'),
         ].join(':');
-
-        document.getElementById('turn').innerText = currentTurn.toLocaleString().padStart(3, '0');
     }
 
     function updateEncounter() {
-        countdownPauseButton.setAttribute('disabled', 'disabled');
-        countdownSkipButton.setAttribute('disabled', 'disabled');
+        countdownPause.setAttribute('disabled', 'disabled');
+        countdownSkip.setAttribute('disabled', 'disabled');
         encounterPanel.classList.remove('hidden');
         zonePanel.classList.add('hidden');
     }
 
     function updateEnvironment() {
-        document.getElementById('atmosphere').innerText = atmosphereStates[environment.atmosphere];
-        document.getElementById('radiation').innerText = radiationStates[environment.radiation];
-        document.getElementById('gravity').innerText = gravityStates[environment.gravity];
-        document.getElementById('light').innerText = lightStates[environment.light];
-        document.getElementById('zone').innerText = environment.zone;
+        atmosphereIcon.innerText = icons.atmosphere[environment.atmosphere];
+        gravityIcon.innerText = icons.gravity[environment.gravity];
+        lightIcon.innerText = icons.light[environment.light];
+        radiationIcon.innerText = icons.radiation[environment.radiation];
+        zoneLabel.innerText = environment.zone;
+
+        if (environment.light === 'dark') {
+            lightIcon.setAttribute('class', 'ruby');
+        } else if (environment.light === 'dim') {
+            lightIcon.setAttribute('class', 'amber');
+        } else {
+            lightIcon.removeAttribute('class');
+        }
     }
 
     commentInput,addEventListener('keyup', function (e) {
@@ -533,37 +541,46 @@
         }
     });
 
-    countdownPauseButton.addEventListener('click', function () {
-        if (countdownIntervalTimer) {
+    countdownPause.addEventListener('click', function () {
+        if (countdownTimer) {
             suspendCountdown();
         } else {
             resumeCountdown();
         }
     });
 
-    countdownSkipButton.addEventListener('click', expireCountdown);
+    countdownSkip.addEventListener('click', expireCountdown);
 
-    countdownSoundButton.addEventListener('click', function () {
+    countdownSound.addEventListener('click', function () {
         if (audioContext?.state === 'running') {
-            countdownSoundButton.innerHTML = '<i>🔕</i>';
+            countdownSound.innerHTML = '<i>🔕</i>';
             audioContext.suspend();
         } else if (audioContext?.state === 'suspended') {
-            countdownSoundButton.innerHTML = '<i>🔔</i>';
+            countdownSound.innerHTML = '<i>🔔</i>';
             audioContext.resume();
         }
     });
 
-    encounterShowButton.addEventListener('click', function () {
-        encounter = {roll: null};
+    encounterShow.addEventListener('click', function () {
+        encounter = {};
+        commentInput.value = 'Encounter';
         suspendCountdown();
         updateEncounter();
     });
 
-    document.getElementById('encounter-hide').addEventListener('click', function () {
-        countdownPauseButton.removeAttribute('disabled');
-        countdownSkipButton.removeAttribute('disabled');
+    document.getElementById('encounter-dismiss').addEventListener('click', function () {
+        encounter = null;
+        commentInput.value = '';
         encounterPanel.classList.add('hidden');
         zonePanel.classList.remove('hidden');
+        enableCountdownButtons();
+        resumeCountdown();
+    });
+
+    document.getElementById('encounter-resolve').addEventListener('click', function () {
+        encounterPanel.classList.add('hidden');
+        zonePanel.classList.remove('hidden');
+        enableCountdownButtons();
         advanceClock();
         resumeCountdown();
     });
@@ -577,12 +594,11 @@
 
         if (! zone) {
             zoneInput.focus();
-
             return;
         }
 
         if (environment === null) {
-            enableCountdown();
+            enableCountdownButtons();
         } else if (environment?.zone !== zone) {
             advanceClock();
         }
@@ -609,15 +625,24 @@
     });
 
     window.addEventListener('load', function () {
+        let clockData = window.localStorage.getItem('mosh:clock');
+
+        clock = clockData ? JSON.parse(clockData) : {
+            time: Math.floor((Date.now() + clockEpoch) / clockInterval) * clockInterval,
+            turn: 0,
+        };
+
+        updateClock();
+
         let environmentData = window.localStorage.getItem('mosh:environment');
 
         if (environmentData) {
             environment = JSON.parse(environmentData);
+            zoneInput.value = environment.zone ?? '';
+            enableCountdownButtons();
             updateEnvironment();
-            enableCountdown();
+            updateCountdown();
         }
-
-        updateClock();
     });
 </script>
 <!-- <template></template> -->
