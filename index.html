@@ -66,14 +66,15 @@
                 </select>
 
                 <button class="cyan w-16" disabled id="countdown-pause">
-                    <i>⏯︎</i>
+                    <!-- <span>⏯︎</span> -->
+                    <span>▶</span>
                 </button>
 
                 <button class="cyan w-16" disabled id="countdown-skip">
-                    <i>⏭︎</i>
+                    <span>⏭︎</span>
                 </button>
 
-                <button class="cyan w-16" id="countdown-sound">
+                <button class="amber w-16" id="countdown-sound">
                     <i>🔕</i>
                 </button>
             </div>
@@ -222,7 +223,7 @@
 
         <div class="flex flex-col gap-4 p-6">
             <div class="flex items-center">
-                <label class="mr-2" for="zone-light">ATMOSPHERE:</label>
+                <label class="mr-2" for="zone-light">ATMO:</label>
                 <select class="p-4 text-center w-full" id="zone-atmosphere">
                     <option value="breathable">Breathable</option>
                     <option value="corrosive">Corrosive</option>
@@ -232,27 +233,26 @@
                     <option value="toxic">Toxic</option>
                     <option value="vacuum">Vacuum</option>
                 </select>
-            </div>
-            <div class="flex items-center">
-                <label class="mr-2" for="zone-radiation">RADIATION:</label>
-                <select class="p-4 text-center w-full" id="zone-radiation">
-                    <option value="trace">Trace</option>
-                    <option value="acute">Acute</option>
-                    <option value="lethal">Lethal</option>
-                </select>
-            </div>
-            <div class="flex items-center">
-                <label class="mr-2" for="zone-light">LIGHT:</label>
-                <select class="p-4 text-center w-full" id="zone-light">
-                    <option value="bright">Bright</option>
-                    <option value="dark">Dark</option>
-                    <option value="dim">Dim</option>
-                </select>
 
                 <label class="ml-4 mr-2" for="zone-gravity">GRAVITY:</label>
                 <select class="p-4 text-center" id="zone-gravity">
                     <option value="standard">1g</option>
                     <option value="zero_g">0g</option>
+                </select>
+            </div>
+            <div class="flex items-center">
+                <label class="mr-2" for="zone-light">LIGHT:</label>
+                <select class="p-4 text-center w-1/2" id="zone-light">
+                    <option value="bright">Bright</option>
+                    <option value="dark">Dark</option>
+                    <option value="dim">Dim</option>
+                </select>
+
+                <label class="ml-4 mr-2" for="zone-radiation">RADIATION:</label>
+                <select class="p-4 text-center w-1/2" id="zone-radiation">
+                    <option value="trace">Trace</option>
+                    <option value="acute">Acute</option>
+                    <option value="lethal">Lethal</option>
                 </select>
             </div>
             <div class="flex items-center">
@@ -444,7 +444,7 @@
             return;
         }
 
-        // countdownPause.innerHTML = '<i>⏸</i>';
+        countdownPause.innerHTML = '<span>⏸</span>';
         countdownState.innerText = '⏵ RUNNING';
         countdownState.setAttribute('class', 'green');
         updateCountdown();
@@ -466,7 +466,7 @@
             return;
         }
 
-        // countdownPause.innerHTML = '<i>⏵</i>';
+        countdownPause.innerHTML = '<span>⏵</span>';
         countdownState.innerText = '⏸ PAUSED';
         countdownState.setAttribute('class', 'amber blink-1s');
         window.clearInterval(countdownTimer);
@@ -562,9 +562,13 @@
 
     countdownSound.addEventListener('click', function () {
         if (audioContext?.state === 'running') {
+            countdownSound.classList.remove('cyan');
+            countdownSound.classList.add('amber');
             countdownSound.innerHTML = '<i>🔕</i>';
             audioContext.suspend();
         } else if (audioContext?.state === 'suspended') {
+            countdownSound.classList.remove('amber');
+            countdownSound.classList.add('cyan');
             countdownSound.innerHTML = '<i>🔔</i>';
             audioContext.resume();
         }
@@ -659,6 +663,8 @@
         }
     });
 </script>
+
 <!-- <template></template> -->
+
 </body>
 </html>
