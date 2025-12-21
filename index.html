@@ -42,7 +42,7 @@
     </div>
     <div>
         <span class="ruby" id="countdown-state">⏹ STOPPED</span>
-        <span id="turn">000</span>
+        <!-- <span id="turn">000</span> -->
     </div>
 </header>
 
@@ -51,12 +51,14 @@
 <main class="flex flex-col gap-4 h-full min-h-1/3 overflow-auto">
 
     <section class="flex flex-wrap gap-4 justify-center w-full">
-        <div class="bg-cyan-600/25 rounded-xl" id="environment-panel">
+        <div class="bg-cyan-600/25 rounded-xl">
             <div class="text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
 
-                <div class="py-4 text-8xl w-48 whitespace-nowrap">
-                    <i id="atmosphere-icon">😑</i>
+                <div class="border-3 border-cyan-200 border-dotted mx-8 my-1 rounded-full size-32">
+                    <div class="flex flex-col h-full justify-center text-7xl" id="environment-scale">
+                        <i id="atmosphere-icon">😑</i>
+                    </div>
                 </div>
             </div>
             <div class="flex gap-4 justify-evenly m-2 pt-1 text-2xl">
@@ -70,8 +72,10 @@
             <div class="text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENCOUNTER</h3>
 
-                <div class="py-4 text-8xl w-48 whitespace-nowrap">
-                    <i>✋</i>
+                <div class="flex flex-col justify-center h-32 w-48">
+                    <span class="text-8xl">
+                        <i>✋</i>
+                    </span>
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
@@ -88,8 +92,8 @@
             <div class="text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ZONE</h3>
 
-                <div class="flex flex-col h-32 justify-center w-48">
-                    <p class="text-7xl" id="zone-label">-?-</p>
+                <div class="flex flex-col justify-center h-32 w-48">
+                    <span class="text-7xl" id="zone-label">-?-</span>
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
@@ -105,11 +109,11 @@
         <div class="bg-cyan-600/25 rounded-xl">
             <div class="text-center">
                 <div class="border-b border-gray-900 px-4 py-2 text-xl">
-                    <h3 id="countdown-header">ROOM -?-</h3>
+                    <h3 id="countdown-header">-?-</h3>
                 </div>
 
-                <div class="px-1 text-9xl w-100 whitespace-nowrap">
-                    <p id="countdown-clock">--:--</p>
+                <div class="flex flex-col justify-center text-9xl h-32 w-100">
+                    <span id="countdown-clock">--:--</span>
                 </div>
             </div>
             <div class="flex gap-4 justify-center pb-2 text-2xl">
@@ -223,7 +227,7 @@
     <div class="bg-cyan-900 rounded-lg shadow-xl max-w-md w-full mx-auto overflow-hidden">
         <div class="flex gap-2 items-center p-4 border-b border-cyan-200">
             <h3 class="text-lg font-semibold">ZONE:</h3>
-            <input class="w-16" id="zone-input" maxlength="3" required>
+            <input class="w-16" id="zone-input" maxlength="4" required>
             <input class="w-full" id="zone-description">
         </div>
 
@@ -262,6 +266,13 @@
                 </select>
             </div>
             <div class="flex items-center">
+                <label class="mr-2" for="zone-gravity">SCALE:</label>
+                <select class="p-4 text-center" id="zone-scale">
+                    <option value="normal">Normal</option>
+                    <option value="industrial">Industrial</option>
+                </select>
+            </div>
+            <div class="flex items-center">
                 <label class="mr-2" for="zone-encounter-rate">%ENC:</label>
                 <input class="w-full" id="zone-encounter-rate" max="1.0" min="0.0" step="0.05" type="range" value="0.1">
             </div>
@@ -287,6 +298,7 @@
     const countdownState = document.getElementById('countdown-state');
     const encounterPanel = document.getElementById('encounter-panel');
     const encounterShow = document.getElementById('encounter-show');
+    const environmentScale = document.getElementById('environment-scale');
     const gravityIcon = document.getElementById('gravity-icon');
     const lightIcon = document.getElementById('light-icon');
     const radiationIcon = document.getElementById('radiation-icon');
@@ -302,13 +314,24 @@
     const zoneModal = document.getElementById('zone-modal');
     const zonePanel = document.getElementById('zone-panel');
     const zoneRadiation = document.getElementById('zone-radiation');
+    const zoneScale = document.getElementById('zone-scale');
 
-    const clockEpoch = 12_622_780_800_000; // 400 years (skip 3 leap days)
+    const clockEpochOffset = 12_622_780_800_000; // 400 years (skip 3 leap days)
     const clockInterval = 600_000; // 10 minutes
     const countdownInterval = 1000; // milliseconds
     const countdownResetValue = 600_000; // 10 minutes
     const countdownWarningCritical = 10_000; // 10 seconds
     const countdownWarningThreshold = 60_000; // 60 seconds
+
+    const commands = {
+        clear: function () {
+            window.localStorage.clear();
+            displaySessionOutput('Local storage cleared.', 'blink ruby');
+        },
+
+        // TODO move, air, gravity, light, radiation
+        // TODO describe room, exits, amend journal entry
+    };
 
     const icons = {
         atmosphere: {
@@ -344,24 +367,58 @@
     let countdownValue = countdownResetValue;
     let encounter = null;
     let environment = null;
-
-    // TODO store journal entries and "replay" on reload
-    // TOOD keep track of rooms, exits
-    // TODO room scale, fast travel
+    let journal = [];
+    
     // TODO depth gauge
     // TODO fatigue/exhaustion
+    // TODO keep track of rooms, exits, fast travel
+    // TODO industrial scale: three turns to traverse
+    // TODO node graph: sigmajs.org
+    // TODO level / encounter tables???
+    // TODO sites
     // TODO Google Sheets connection?
 
-    // TODO disaplyJournalEntry vs recordJournalEntry
-    function addJournalEntry(comment, style = null) {
+    function advanceClock() {
+        let comment = sessionInput.value.trim();
+
+        if (comment.startsWith('/')) {
+            comment = null;
+        } else {
+            sessionInput.value = '';
+        }
+
+        if (encounter && ! comment) {
+            comment = (encounter.roll ?? 'ENC').toLocaleString().padStart(2, '0');
+        }
+        
+        if (comment) {
+            displayJournalEntry(recordJournalEntry(comment));
+        }
+
+        encounter = null;
+
+        clock.time += clockInterval;
+        clock.turn++;
+        window.localStorage.setItem('mosh:clock', JSON.stringify(clock));
+        updateClock();
+
+        countdownValue = countdownResetValue;
+        updateCountdown();
+    }
+
+    function displayJournalEntry(entry) {
+        displaySessionOutput([
+            formatDate(entry.time),
+            formatTime(entry.time),
+            (entry.zone ?? '').padStart(3, '0'),
+            entry.comment,
+        ].join(' '), entry.encounter ? 'amber' : null);
+    }
+
+    function displaySessionOutput(text, style = null) {
         const entry = document.createElement('p');
 
-        entry.innerText = [
-            formatDate(clock.time),
-            formatTime(clock.time),
-            environment.zone,
-            comment,
-        ].join(' ');
+        entry.innerText = text;
 
         if (style) {
             entry.setAttribute('class', style);
@@ -370,51 +427,19 @@
         sessionOutput.appendChild(entry);
     }
 
-    function advanceClock() {
-        let comment = sessionInput.value.trim();
-
-        if (! comment || comment.startsWith('/')) {
-            comment = encounter ? 'ENC' : 'NTR';
-        } else {
-            sessionInput.value = '';
-        }
-
-        addJournalEntry(comment, encounter ? 'amber' : null);
-
-        clock.time += clockInterval;
-        clock.turn++;
-        window.localStorage.setItem('mosh:clock', JSON.stringify(clock));
-        updateClock();
-
-        countdownValue = countdownResetValue;
-        encounter = null;
-        updateCountdown();
-    }
-
     function enableCountdownButtons() {
         countdownPause.removeAttribute('disabled');
         countdownSkip.removeAttribute('disabled');
         encounterShow.removeAttribute('disabled');
     }
 
-    function execute(command) {
-        if (command === 'clear') {
-            window.localStorage.clear();
-        }
-        // TODO move, air, gravity, light, radiation
-        // TODO describe room, exits
-    }
-
     function expireCountdown() {
         suspendCountdown();
 
         if (Math.random() < environment.encounterRate) {
-            let roll = Math.floor(Math.random() * 10);
-
-            sessionInput.value = 'Encounter ' + roll.toLocaleString().padStart(2, '0');
+            encounter = {roll: Math.floor(Math.random() * 10)};
+            sessionInput.value = encounter.roll.toLocaleString().padStart(2, '0');
             playTone(660, 1.0, 'sine');
-
-            encounter = {roll: roll};
             updateEncounter();
         } else {
             advanceClock();
@@ -453,6 +478,21 @@
         oscillator.connect(gainNode);
         oscillator.start();
         oscillator.stop(audioContext.currentTime + duration); // seconds
+    }
+
+    function recordJournalEntry(comment) {
+        let entry = {
+            comment: comment,
+            encounter: encounter,
+            time: clock.time,
+            zone: environment.zone ?? null,
+        }
+
+        journal.push(entry);
+
+        window.localStorage.setItem('mosh:journal', JSON.stringify(journal));
+
+        return entry;
     }
 
     function resumeCountdown() {
@@ -495,7 +535,7 @@
             formatTime(clock.time),
         ].join(' ');
 
-        document.getElementById('turn').innerText = clock.turn.toLocaleString().padStart(3, '0');
+        // document.getElementById('turn').innerText = clock.turn.toLocaleString().padStart(3, '0');
     }
 
     function updateCountdown() {
@@ -540,12 +580,22 @@
 
     function updateEnvironment() {
         countdownHeader.innerText = environment.description || ('ROOM ' + environment.zone);
+
+        if ((environment.scale ?? false) === 'industrial') {
+            environmentScale.classList.remove('text-7xl');
+            environmentScale.classList.add('text-3xl');
+        } else {
+            environmentScale.classList.remove('text-3xl');
+            environmentScale.classList.add('text-7xl');
+        }
+        
         updateElement(atmosphereIcon, ...icons.atmosphere[environment.atmosphere]);
         updateElement(radiationIcon, ...icons.radiation[environment.radiation]);
         updateElement(gravityIcon, ...icons.gravity[environment.gravity]);
         updateElement(lightIcon, ...icons.light[environment.light]);
         zoneLabel.innerText = environment.zone;
     }
+
     countdownPause.addEventListener('click', function () {
         if (countdownTimer) {
             suspendCountdown();
@@ -594,7 +644,6 @@
         resumeCountdown();
     });
 
-
     sessionInput,addEventListener('keyup', function (e) {
         if (e.which === 13) { // ENTER
             let comment = sessionInput.value.trim();
@@ -604,9 +653,16 @@
             }
             
             if (comment.startsWith('/')) {
-                execute(comment.substr(1).toLocaleLowerCase());
+                let arguments = comment.substr(1).split(' ');
+                let command = arguments.shift().toLocaleLowerCase();
+
+                if (command in commands) {
+                    commands[command](... arguments);
+                }
+            } else if (encounter) {
+                advanceClock();
             } else {
-                addJournalEntry(comment, encounter ? 'amber' : null);
+                displayJournalEntry(recordJournalEntry(comment));
             }
 
             sessionInput.value = '';
@@ -640,6 +696,7 @@
             gravity: zoneGravity.value,
             light: zoneLight.value,
             radiation: zoneRadiation.value,
+            scale: zoneScale.value,
             zone: zone,
         };
 
@@ -658,15 +715,15 @@
 
     window.addEventListener('load', function () {
         let clockData = window.localStorage.getItem('mosh:clock');
+        let environmentData = window.localStorage.getItem('mosh:environment');
+        let journalData = window.localStorage.getItem('mosh:journal');
 
         clock = clockData ? JSON.parse(clockData) : {
-            time: Math.floor((Date.now() + clockEpoch) / clockInterval) * clockInterval,
+            time: Math.floor((Date.now() + clockEpochOffset) / clockInterval) * clockInterval,
             turn: 1,
         };
 
         updateClock();
-
-        let environmentData = window.localStorage.getItem('mosh:environment');
 
         if (environmentData) {
             environment = JSON.parse(environmentData);
@@ -677,10 +734,14 @@
             zoneInput.value = environment.zone ?? '';
             zoneLight.value = environment.light ?? 'bright';
             zoneRadiation.value = environment.radiation ?? 'trace';
+            zoneScale.value = environment.scale ?? 'normal';
             enableCountdownButtons();
             updateEnvironment();
             updateCountdown();
         }
+
+        journal = journalData ? JSON.parse(journalData) : [];
+        journal.forEach(entry => displayJournalEntry(entry));
     });
 </script>
 
