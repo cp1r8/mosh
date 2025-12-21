@@ -19,8 +19,11 @@
     button:hover {
         @apply bg-white border-white text-gray-700
     }
-    input, textarea {
+    input {
         @apply bg-gray-700 border-1 border-gray-900 px-2 py-1 rounded-lg;
+    }
+    input:disabled {
+        @apply bg-cyan-800;
     }
     select {
         @apply appearance-none border-1 border-gray-900 cursor-pointer pl-4 py-1 rounded-lg;
@@ -31,11 +34,11 @@
 </style>
 <title>MOSH v1.01</title>
 </head>
-<body class="bg-cathode cyan flex flex-col gap-4 h-screen">
+<body class="bg-cathode flex flex-col gap-4 h-screen">
 
 <header class="flex justify-between">
     <div>
-        <span id="clock">--/--/---- --:--</span>
+        <span class="cyan" id="clock">--/--/---- --:--</span>
     </div>
     <div>
         <span class="ruby" id="countdown-state">⏹ STOPPED</span>
@@ -45,7 +48,7 @@
 
 <!-- <nav></nav> -->
 
-<main class="flex flex-col gap-4 h-full min-h-1/2 overflow-auto">
+<main class="cyan flex flex-col gap-4 h-full min-h-1/2 overflow-auto">
 
     <section class="flex flex-wrap gap-4 justify-center w-full">
         <div class="bg-cyan-600/25 h-60 rounded-xl w-48">
@@ -226,14 +229,20 @@
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-700/50" id="zone-modal">
     <div class="bg-cyan-900 rounded-lg shadow-xl max-w-md w-full mx-auto overflow-hidden">
         <div class="flex gap-2 items-center p-4 border-b border-cyan-200">
-            <h3 class="text-lg font-semibold">ZONE:</h3>
-            <input class="w-16" id="zone-input" maxlength="4" required>
+            <label class="text-lg font-semibold" for="zone-input">ZONE:</label>
+
+            <div class="relative">
+                <input class="w-20" id="zone-input" list="zone-exits" maxlength="4" required>
+                <datalist class="left-0 z-999" id="zone-exits"></datalist>
+            </div>
+
             <input class="w-full" id="zone-description">
         </div>
 
         <div class="flex flex-col gap-4 p-6">
             <div class="flex items-center">
                 <label class="mr-2" for="zone-light">AIR:</label>
+
                 <select class="p-4 text-center w-full" id="zone-atmosphere">
                     <option value="breathable">Breathable</option>
                     <option value="corrosive">Corrosive</option>
@@ -266,11 +275,14 @@
                 </select>
             </div>
             <div class="flex items-center">
-                <label class="mr-2" for="zone-gravity">SCALE:</label>
+                <label class="mr-2" for="zone-scale">SCALE:</label>
                 <select class="p-4 text-center" id="zone-scale">
                     <option value="normal">Normal</option>
                     <option value="industrial">Industrial</option>
                 </select>
+
+                <label class="ml-4 mr-2" for="zone-exit-via">VIA:</label>
+                <input class="w-full" disabled id="zone-exit-via">
             </div>
             <div class="flex items-center">
                 <label class="mr-2" for="zone-encounter-rate">%ENC:</label>
@@ -307,6 +319,8 @@
     const zoneAtmosphere = document.getElementById('zone-atmosphere');
     const zoneDescription = document.getElementById('zone-description');
     const zoneEncounterRate = document.getElementById('zone-encounter-rate');
+    const zoneExits = document.getElementById('zone-exits');
+    const zoneExitVia = document.getElementById('zone-exit-via');
     const zoneGravity = document.getElementById('zone-gravity');
     const zoneInput = document.getElementById('zone-input');
     const zoneLabel = document.getElementById('zone-label');
@@ -329,13 +343,18 @@
             displaySessionOutput('Local storage cleared.', 'blink ruby');
         },
 
+        dump: function () {
+            let dump = {current: current, journal: journal, zones: zones};
+            console.log(JSON.stringify(dump));
+        },
+
         // TODO move, air, gravity, light, radiation
         // TODO describe room, exits, amend journal entry
     };
 
     const icons = {
         atmosphere: {
-            breathable: ['🙂'],
+            breathable: ['😐'], // 🙂
             corrosive: ['⚠︎', 'amber'], // 🫠
             extreme_cold: ['🥶', 'sapphire'],
             extreme_heat: ['🥵', 'amber'],
@@ -362,21 +381,21 @@
         },
     };
 
-    let clock = null;
     let countdownSound = false;
     let countdownTimer = null;
     let countdownValue = countdownResetValue;
-    let encounter = null;
-    let environment = null;
-    let journal = [];
+    let current = null;
+    let journal = null;
+    let zones = null;
     
+    // TODO combat rounds
     // TODO depth gauge
     // TODO fatigue/exhaustion
-    // TODO keep track of rooms, exits, fast travel
-    // TODO industrial scale: three turns to traverse
+    // TODO fast travel
+    // TODO industrial scale: three turns to traverse?
     // TODO node graph: sigmajs.org
-    // TODO level / encounter tables???
-    // TODO sites
+    // TODO encounter tables
+    // TODO sites/levels
     // TODO Google Sheets connection?
 
     function advanceClock() {
@@ -388,19 +407,18 @@
             sessionInput.value = '';
         }
 
-        if (encounter && ! comment) {
-            comment = (encounter.roll ?? 'ENC').toLocaleString().padStart(2, '0');
+        if (! comment && (current.encounter ?? false)) {
+            comment = (current.encounter.roll ?? 'ENC').toLocaleString().padStart(2, '0');
         }
         
         if (comment) {
             displayJournalEntry(recordJournalEntry(comment));
         }
 
-        encounter = null;
-
-        clock.time += clockInterval;
-        clock.turn++;
-        window.localStorage.setItem('mosh:clock', JSON.stringify(clock));
+        current.encounter = null;
+        current.time += clockInterval;
+        current.turn++;
+        window.localStorage.setItem('mosh:current', JSON.stringify(current));
         updateClock();
 
         countdownValue = countdownResetValue;
@@ -413,7 +431,7 @@
             formatTime(entry.time),
             (entry.zone ?? '---').padStart(3, '0'),
             entry.comment,
-        ].join(' '), entry.encounter ? 'amber' : null);
+        ].join(' '), (entry.encounter ?? false) ? 'amber' : null);
     }
 
     function displaySessionOutput(text, style = null) {
@@ -437,9 +455,9 @@
     function expireCountdown() {
         suspendCountdown();
 
-        if (Math.random() < environment.encounterRate) {
-            encounter = {roll: Math.floor(Math.random() * 10)};
-            sessionInput.value = encounter.roll.toLocaleString().padStart(2, '0');
+        if (Math.random() < current.encounterRate) {
+            current.encounter = {roll: Math.floor(Math.random() * 10)};
+            sessionInput.value = current.encounter.roll.toLocaleString().padStart(2, '0');
             playTone(660, 1.0, 'sine');
             updateEncounter();
         } else {
@@ -484,9 +502,9 @@
     function recordJournalEntry(comment) {
         let entry = {
             comment: comment,
-            encounter: encounter,
-            time: clock.time,
-            zone: environment?.zone,
+            encounter: current.encounter ?? null,
+            time: current.time,
+            zone: current.zone,
         }
 
         journal.push(entry);
@@ -532,11 +550,11 @@
 
     function updateClock() {
         document.getElementById('clock').innerText = [
-            formatDate(clock.time),
-            formatTime(clock.time),
+            formatDate(current.time),
+            formatTime(current.time),
         ].join(' ');
 
-        // document.getElementById('turn').innerText = clock.turn.toLocaleString().padStart(3, '0');
+        // document.getElementById('turn').innerText = current.turn.toLocaleString().padStart(3, '0');
     }
 
     function updateCountdown() {
@@ -579,9 +597,9 @@
         zonePanel.classList.add('hidden');
     }
 
-    function updateEnvironment() {
-        countdownHeader.innerText = environment.description || ('ROOM ' + environment.zone);
-        zoneLabel.innerText = environment.zone;
+    function updateEnvironment(environment) {
+        countdownHeader.innerText = environment.description || ('ZONE ' + current.zone);
+        zoneLabel.innerText = current.zone;
 
         if ((environment.scale ?? false) === 'industrial') {
             environmentScale.classList.remove('text-7xl');
@@ -595,6 +613,30 @@
         updateElement(radiationIcon, ...icons.radiation[environment.radiation]);
         updateElement(gravityIcon, ...icons.gravity[environment.gravity]);
         updateElement(lightIcon, ...icons.light[environment.light]);
+    }
+
+    function updateZoneModal(environment, exits = true) {
+        if (exits) {
+            zoneExits.innerHTML = '';
+
+            Object.keys(environment.exits ?? {}).forEach(function (exit) {
+                let option = document.createElement('option');
+
+                option.setAttribute('value', exit);
+
+                zoneExits.appendChild(option);
+            });
+        }
+
+        zoneDescription.value = environment.description ?? '';
+
+        zoneAtmosphere.value = environment.atmosphere ?? 'breathable';
+        zoneGravity.value = environment.gravity ?? 'standard';
+        zoneLight.value = environment.light ?? 'bright';
+        zoneRadiation.value = environment.radiation ?? 'trace';
+        zoneScale.value = environment.scale ?? 'normal';
+
+        zoneEncounterRate.value = current.encounterRate ?? 0.1;
     }
 
     countdownPause.addEventListener('click', function () {
@@ -620,14 +662,14 @@
     });
 
     encounterShow.addEventListener('click', function () {
-        encounter = {};
+        current.encounter = {};
         sessionInput.value = 'Encounter';
         suspendCountdown();
         updateEncounter();
     });
 
     document.getElementById('encounter-dismiss').addEventListener('click', function () {
-        encounter = null;
+        current.encounter = null;
         sessionInput.value = '';
         encounterPanel.classList.add('hidden');
         zonePanel.classList.remove('hidden');
@@ -658,7 +700,7 @@
                 if (command in commands) {
                     commands[command](... arguments);
                 }
-            } else if (encounter) {
+            } else if (current.encounter) {
                 advanceClock();
             } else {
                 displayJournalEntry(recordJournalEntry(comment));
@@ -667,6 +709,31 @@
             sessionInput.value = '';
         } else if (e.which === 27) { // ESC
             sessionInput.value = '';
+        }
+    });
+
+    zoneInput.addEventListener('blur', function () {
+        const zone = zoneInput.value.trim().toUpperCase();
+
+        if (zone in zones) {
+            updateZoneModal(zones[zone], false);
+        } else if (zone) {
+            zoneDescription.value = '';
+        }
+
+        if (current.zone ?? false) {
+            if (current.zone === zone) {
+                zoneExitVia.setAttribute('disabled', 'disabled');
+                zoneExitVia.value = '';
+            } else {
+                zoneExitVia.removeAttribute('disabled');
+
+                let environment = zones[current.zone];
+
+                if (environment.exits ?? false) {
+                    zoneExitVia.value = environment.exits[zone].via ?? '';
+                }
+            }
         }
     });
 
@@ -682,65 +749,83 @@
             return;
         }
 
-        if (environment === null) {
+        const via = zoneExitVia.value.trim();
+
+        if (! (current.zone ?? false)) {
             enableCountdownButtons();
-        } else if (environment?.zone !== zone) {
+        } else if (current.zone !== zone) {
+            if (via) {
+                let environment = zones[current.zone];
+                environment.exits = environment.exits ?? {};
+                environment.exits[zone] = {via: via};
+            }
+
             advanceClock();
         }
         
-        environment = {
-            atmosphere: zoneAtmosphere.value,
-            description: zoneDescription.value,
-            encounterRate: zoneEncounterRate.value,
-            gravity: zoneGravity.value,
-            light: zoneLight.value,
-            radiation: zoneRadiation.value,
-            scale: zoneScale.value,
-            zone: zone,
-        };
+        let environment = zones[zone] ?? {};
 
-        window.localStorage.setItem('mosh:environment', JSON.stringify(environment));
+        environment.description = zoneDescription.value;
+        environment.atmosphere = zoneAtmosphere.value;
+        environment.gravity = zoneGravity.value;
+        environment.light = zoneLight.value;
+        environment.radiation = zoneRadiation.value;
+        environment.scale = zoneScale.value;
+        environment.exits = environment.exits ?? {};
+
+        if (via) {
+            environment.exits[current.zone] = {via: via};
+        }
+
+        zones[zone] = environment;
+
+        current.encounterRate = zoneEncounterRate.value;
+        current.zone = zone;
+
+        window.localStorage.setItem('mosh:current', JSON.stringify(current));
+        window.localStorage.setItem('mosh:zones', JSON.stringify(zones));
         zoneModal.classList.add('hidden');
         sessionInput.focus();
-        updateEnvironment();
+
+        updateEnvironment(environment);
         resumeCountdown();
     });
 
     document.getElementById('zone-modal-show').addEventListener('click', function () {
+        zoneInput.value = current.zone ?? '';
+        updateZoneModal(zones[current.zone] ?? {});
         zoneModal.classList.remove('hidden');
         zoneInput.focus();
         suspendCountdown();
     });
 
     window.addEventListener('load', function () {
-        let clockData = window.localStorage.getItem('mosh:clock');
-        let environmentData = window.localStorage.getItem('mosh:environment');
+        let currentData = window.localStorage.getItem('mosh:current');
         let journalData = window.localStorage.getItem('mosh:journal');
+        let zonesData = window.localStorage.getItem('mosh:zones');
 
-        clock = clockData ? JSON.parse(clockData) : {
+        current = currentData ? JSON.parse(currentData) : {
+            encounter: null,
+            encounterRate: 0.1,
             time: Math.floor((Date.now() + clockEpochOffset) / clockInterval) * clockInterval,
             turn: 1,
+            zone: null,
         };
+
+        zones = zonesData ? JSON.parse(zonesData) : {};
+        journal = journalData ? JSON.parse(journalData) : [];
+        journal.forEach(entry => displayJournalEntry(entry));
 
         updateClock();
 
-        if (environmentData) {
-            environment = JSON.parse(environmentData);
-            zoneAtmosphere.value = environment.atmosphere ?? 'breathable';
-            zoneDescription.value = environment.description ?? '';
-            zoneEncounterRate.value = environment.encounterRate ?? 0.1;
-            zoneGravity.value = environment.gravity ?? 'standard';
-            zoneInput.value = environment.zone ?? '';
-            zoneLight.value = environment.light ?? 'bright';
-            zoneRadiation.value = environment.radiation ?? 'trace';
-            zoneScale.value = environment.scale ?? 'normal';
+        if (current.zone && current.zone in zones) {
+            let environment = zones[current.zone];
+
+            updateEnvironment(environment);
+            updateZoneModal(environment);
             enableCountdownButtons();
-            updateEnvironment();
             updateCountdown();
         }
-
-        journal = journalData ? JSON.parse(journalData) : [];
-        journal.forEach(entry => displayJournalEntry(entry));
     });
 </script>
 
