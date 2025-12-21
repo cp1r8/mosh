@@ -19,9 +19,6 @@
     button:hover {
         @apply bg-white border-white text-gray-700
     }
-    img.crew-photo {
-        @apply mix-blend-overlay;
-    }
     input, textarea {
         @apply bg-gray-700 border-1 border-gray-900 px-2 py-1 rounded-lg;
     }
@@ -48,75 +45,75 @@
 
 <!-- <nav></nav> -->
 
-<main class="flex flex-col gap-4 h-full min-h-1/3 overflow-auto">
+<main class="flex flex-col gap-4 h-full min-h-1/2 overflow-auto">
 
     <section class="flex flex-wrap gap-4 justify-center w-full">
-        <div class="bg-cyan-600/25 rounded-xl">
-            <div class="text-center">
+        <div class="bg-cyan-600/25 h-60 rounded-xl w-48">
+            <div class="flex flex-col text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENVIRONMENT</h3>
 
                 <div class="border-3 border-cyan-200 border-dotted mx-8 my-1 rounded-full size-32">
-                    <div class="flex flex-col h-full justify-center text-7xl" id="environment-scale">
-                        <i id="atmosphere-icon">😑</i>
+                    <div class="flex h-full items-center justify-center">
+                        <div class="text-7xl" id="environment-scale">
+                            <i id="atmosphere-icon">😑</i>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="flex gap-4 justify-evenly m-2 pt-1 text-2xl">
+            <div class="flex gap-4 justify-evenly m-2 py-1 text-2xl">
                 <i id="gravity-icon">⚓</i>
                 <i class="opacity-50" id="radiation-icon">☢</i>
                 <i id="light-icon">🔅</i>
             </div>
         </div>
 
-        <div class="hidden bg-amber-600/25 rounded-xl" id="encounter-panel">
-            <div class="text-center">
+        <div class="hidden bg-amber-600/25 h-60 rounded-xl w-48" id="encounter-panel">
+            <div class="flex flex-col text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ENCOUNTER</h3>
 
-                <div class="flex flex-col justify-center h-32 w-48">
-                    <span class="text-8xl">
-                        <i>✋</i>
-                    </span>
+                <div class="flex h-32 items-center justify-center">
+                    <i class="amber text-8xl">✋</i>
                 </div>
             </div>
-            <div class="flex gap-4 justify-center pb-2 text-2xl">
-                <button class="cyan w-16" id="encounter-dismiss">
-                    <i>❌</i>
+            <div class="flex gap-4 justify-center pt-1 text-2xl">
+                <button class="w-16" id="encounter-dismiss">
+                    <i class="ruby">❌</i>
                 </button>
-                <button class="cyan w-16" id="encounter-resolve">
-                    <i>✔︎</i>
+                <button class="w-16" id="encounter-resolve">
+                    <i class="green">✔︎</i>
                 </button>
             </div>
         </div>
 
-        <div class="bg-cyan-600/25 rounded-xl" id="zone-panel">
-            <div class="text-center">
+        <div class="bg-cyan-600/25 h-60 rounded-xl w-48" id="zone-panel">
+            <div class="flex flex-col text-center">
                 <h3 class="border-b border-gray-900 py-2 text-xl">ZONE</h3>
 
-                <div class="flex flex-col justify-center h-32 w-48">
+                <div class="flex h-32 items-center justify-center">
                     <span class="text-7xl" id="zone-label">-?-</span>
                 </div>
             </div>
-            <div class="flex gap-4 justify-center pb-2 text-2xl">
-                <button class="cyan w-16" disabled id="encounter-show">
-                    <i>✋</i>
+            <div class="flex gap-4 justify-center pt-1 text-2xl">
+                <button class="w-16" disabled id="encounter-show">
+                    <i class="cyan">✋</i>
                 </button>
-                <button class="cyan w-16" id="zone-modal-show">
-                    <i>⮕</i>
+                <button class="w-16" id="zone-modal-show">
+                    <i class="cyan">⮕</i>
                 </button>
             </div>
         </div>
 
-        <div class="bg-cyan-600/25 rounded-xl">
+        <div class="bg-cyan-600/25 h-60 rounded-xl w-100">
             <div class="text-center">
                 <div class="border-b border-gray-900 px-4 py-2 text-xl">
                     <h3 id="countdown-header">-?-</h3>
                 </div>
 
-                <div class="flex flex-col justify-center text-9xl h-32 w-100">
+                <div class="flex flex-col h-32 justify-center text-9xl">
                     <span id="countdown-clock">--:--</span>
                 </div>
             </div>
-            <div class="flex gap-4 justify-center pb-2 text-2xl">
+            <div class="flex gap-4 justify-center pt-1 text-2xl">
                 <select class="cyan text-sm w-16" id="countdown-speed">
                     <option value="5.0">5.0&times;</option>
                     <option value="2.0">2.0&times;</option>
@@ -125,97 +122,100 @@
                     <option value="0.2">0.2&times;</option>
                 </select>
 
-                <button class="cyan w-16" disabled id="countdown-pause">
-                    <!-- <span>⏯︎</span> -->
-                    <span>▶</span>
-                </button>
+                <button class="cyan w-16" disabled id="countdown-pause">▶</button>
 
-                <button class="cyan w-16" disabled id="countdown-skip">
-                    <span>⏭︎</span>
-                </button>
+                <button class="cyan w-16" disabled id="countdown-skip">⏭︎</button>
 
-                <button class="amber w-16" id="countdown-sound">
-                    <i>🔕</i>
+                <button class="w-16" id="countdown-mute">
+                    <i class="ruby">🔕</i>
                 </button>
             </div>
         </div>
     </section>
 
-    <section class="hidden flex flex-wrap gap-4 justify-center w-full" id="crew-panels">
-        <div class="bg-cyan-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
-            <h3 class="border-b border-gray-900 py-2">LCP MINERVA</h3>
+    <section class="hidden flex flex-wrap gap-4 justify-center w-full">
+        <div class="bg-cyan-600/25 h-60 rounded-xl w-48">
+            <div class="flex flex-col">
+                <h3 class="border-b border-gray-900 py-2 text-center">LCP MINERVA</h3>
 
-            <div class="flex">
-                <div class="relative w-32">
-                    <img class="crew-photo w-32" src="./img/4D9N-5LOOQZ.png">
+                <div class="flex">
+                    <div class="overflow-hidden relative size-32">
+                        <img class="opacity-60" src="./img/4D9N-5LOOQZ.png">
+                    </div>
+
+                    <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
+                        <li>36°C</li>
+                        <li>70 ♥</li>
+                        <li>.99O₂</li>
+                        <li>118mm</li>
+                    </ul>
                 </div>
-
-                <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
-                    <li>36°C</li>
-                    <li>70 ♥</li>
-                    <li>.99O₂</li>
-                    <li>118mm</li>
-                </ul>
             </div>
         </div>
 
-        <div class="amber bg-amber-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
-            <h3 class="border-b border-gray-900 py-2">DR ZAHIR</h3>
+        <div class="amber bg-amber-600/25 h-60 rounded-xl w-48">
+            <div class="flex flex-col">
+                <h3 class="border-b border-gray-900 py-2 text-center">DR ZAHIR</h3>
 
-            <div class="flex">
-                <div class="relative w-32">
-                    <img class="crew-photo w-32" src="./img/CW01-241127.png">
+                <div class="flex">
+                    <div class="overflow-hidden relative size-32">
+                        <img class="opacity-60" src="./img/CW01-241127.png">
+                    </div>
+
+                    <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
+                        <li>37°C</li>
+                        <li class="pulse ruby">147 ♥</li>
+                        <li>.97O₂</li>
+                        <li>135mm</li>
+                    </ul>
                 </div>
-
-                <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
-                    <li>37°C</li>
-                    <li class="pulse ruby">147 ♥</li>
-                    <li>.97O₂</li>
-                    <li>135mm</li>
-                </ul>
             </div>
         </div>
 
-        <div class="ruby bg-red-600/25 flex flex-col pb-4 rounded-xl text-center w-48">
-            <h3 class="border-b border-gray-900 py-2">PVT LOUIS</h3>
+        <div class="ruby bg-red-600/25 h-60 rounded-xl w-48">
+            <div class="flex flex-col">
+                <h3 class="border-b border-gray-900 py-2 text-center">PVT LOUIS</h3>
 
-            <div class="flex">
-                <div class="overflow-hidden relative w-32">
-                    <img class="crew-photo w-32" src="./img/HR01-241127.png">
-                    <div class="absolute bg-red-900 block h-46 left-15 rotate-45 -top-7 w-2"></div>
-                    <div class="absolute bg-red-900 block h-46 left-15 -rotate-45 -top-7 w-2"></div>
+                <div class="flex">
+                    <div class="overflow-hidden relative size-32">
+                        <img class="opacity-60" src="./img/HR01-241127.png">
+                        <div class="absolute bg-red-900 block h-46 left-15 rotate-45 -top-7 w-2"></div>
+                        <div class="absolute bg-red-900 block h-46 left-15 -rotate-45 -top-7 w-2"></div>
+                    </div>
+
+                    <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
+                        <li>---°C</li>
+                        <li>--- ♥</li>
+                        <li>---O₂</li>
+                        <li>---mm</li>
+                    </ul>
                 </div>
-
-                <ul class="flex flex-col gap-2 justify-between pr-2 pt-2 text-right w-16 whitespace-nowrap">
-                    <li>---°C</li>
-                    <li>--- ♥</li>
-                    <li>---O₂</li>
-                    <li>---mm</li>
-                </ul>
             </div>
         </div>
 
-        <div class="pulse-2s bg-cyan-600/25 flex flex-col pb-4 rounded-xl text-center w-48 xhidden">
-            <h3 class="border-b border-gray-900 py-2">ÉGLE-2</h3>
+        <div class="pulse-2s bg-cyan-600/25 h-60 rounded-xl w-48">
+            <div class="flex flex-col">
+                <h3 class="border-b border-gray-900 py-2 text-center">ÉGLE-2</h3>
 
-            <div class="flex">
-                <div class="relative w-32">
-                    <img class="crew-photo w-32" src="./img/LF01-241127.png">
+                <div class="flex">
+                    <div class="overflow-hidden relative size-32">
+                        <img class="opacity-60" src="./img/LF01-241127.png">
+                    </div>
+
+                    <ul class="flex flex-col gap-2 justify-between pl-2 pt-2 text-left w-16 whitespace-nowrap">
+                        <li class="amber">███▍</li>
+                        <li>██▍</li>
+                        <li class="ruby">█████</li>
+                        <li>▏</li>
+                    </ul>
                 </div>
-
-                <ul class="flex flex-col gap-2 justify-between pl-2 pt-2 text-left w-16 whitespace-nowrap">
-                    <li class="amber">███▍</li>
-                    <li>██▍</li>
-                    <li class="ruby">█████</li>
-                    <li>▏</li>
-                </ul>
             </div>
         </div>
     </section>
 
 </main>
 
-<section class="grow min-h-1/4 overflow-y-scroll">
+<section class="grow min-h-1/6 overflow-y-scroll">
     <div class="flex flex-col-reverse gap-1 whitespace-nowrap" id="session-output"></div>
 </section>
 
@@ -291,9 +291,9 @@
     const atmosphereIcon = document.getElementById('atmosphere-icon');
     const countdownClock = document.getElementById('countdown-clock');
     const countdownHeader = document.getElementById('countdown-header');
+    const countdownMute = document.getElementById('countdown-mute');
     const countdownPause = document.getElementById('countdown-pause');
     const countdownSkip = document.getElementById('countdown-skip');
-    const countdownSound = document.getElementById('countdown-sound');
     const countdownSpeed = document.getElementById('countdown-speed');
     const countdownState = document.getElementById('countdown-state');
     const encounterPanel = document.getElementById('encounter-panel');
@@ -363,6 +363,7 @@
     };
 
     let clock = null;
+    let countdownSound = false;
     let countdownTimer = null;
     let countdownValue = countdownResetValue;
     let encounter = null;
@@ -410,7 +411,7 @@
         displaySessionOutput([
             formatDate(entry.time),
             formatTime(entry.time),
-            (entry.zone ?? '').padStart(3, '0'),
+            (entry.zone ?? '---').padStart(3, '0'),
             entry.comment,
         ].join(' '), entry.encounter ? 'amber' : null);
     }
@@ -485,7 +486,7 @@
             comment: comment,
             encounter: encounter,
             time: clock.time,
-            zone: environment.zone ?? null,
+            zone: environment?.zone,
         }
 
         journal.push(entry);
@@ -500,7 +501,7 @@
             return;
         }
 
-        countdownPause.innerHTML = '<span>⏸</span>';
+        countdownPause.innerHTML = '⏸';
         countdownState.innerText = '⏵ RUNNING';
         countdownState.setAttribute('class', 'green');
         updateCountdown();
@@ -522,7 +523,7 @@
             return;
         }
 
-        countdownPause.innerHTML = '<span>⏵</span>';
+        countdownPause.innerHTML = '⏵';
         countdownState.innerText = '⏸ PAUSED';
         countdownState.setAttribute('class', 'amber blink-1s');
         window.clearInterval(countdownTimer);
@@ -580,6 +581,7 @@
 
     function updateEnvironment() {
         countdownHeader.innerText = environment.description || ('ROOM ' + environment.zone);
+        zoneLabel.innerText = environment.zone;
 
         if ((environment.scale ?? false) === 'industrial') {
             environmentScale.classList.remove('text-7xl');
@@ -593,7 +595,6 @@
         updateElement(radiationIcon, ...icons.radiation[environment.radiation]);
         updateElement(gravityIcon, ...icons.gravity[environment.gravity]);
         updateElement(lightIcon, ...icons.light[environment.light]);
-        zoneLabel.innerText = environment.zone;
     }
 
     countdownPause.addEventListener('click', function () {
@@ -606,17 +607,15 @@
 
     countdownSkip.addEventListener('click', expireCountdown);
 
-    countdownSound.addEventListener('click', function () {
-        if (audioContext?.state === 'running') {
-            countdownSound.classList.remove('cyan');
-            countdownSound.classList.add('amber');
-            countdownSound.innerHTML = '<i>🔕</i>';
+    countdownMute.addEventListener('click', function () {
+        if (countdownSound) {
             audioContext.suspend();
-        } else if (audioContext?.state === 'suspended') {
-            countdownSound.classList.remove('amber');
-            countdownSound.classList.add('cyan');
-            countdownSound.innerHTML = '<i>🔔</i>';
+            countdownMute.innerHTML = '<i class="ruby">🔕</i>';
+            countdownSound = false;
+        } else {
             audioContext.resume();
+            countdownMute.innerHTML = '<i class="cyan">🔔</i>';
+            countdownSound = true;
         }
     });
 
