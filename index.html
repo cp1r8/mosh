@@ -25,6 +25,9 @@
     input:disabled {
         @apply bg-cyan-800;
     }
+    nav button {
+        @apply bg-cyan-600/25;
+    }
     select {
         @apply appearance-none border-1 border-gray-900 cursor-pointer pl-4 py-1 rounded-lg;
     }
@@ -34,7 +37,7 @@
 </style>
 <title>MOSH v1.01</title>
 </head>
-<body class="bg-cathode flex flex-col gap-4 h-screen">
+<body class="bg-cathode flex flex-col gap-2 h-screen">
 
 <header class="flex justify-between">
     <div>
@@ -42,11 +45,14 @@
     </div>
     <div>
         <span class="ruby" id="countdown-state">⏹ STOPPED</span>
-        <!-- <span id="turn">000</span> -->
     </div>
 </header>
 
-<!-- <nav></nav> -->
+<nav class="flex gap-2 h-14 mb-2 overflow-x-scroll text-sm">
+    <div class="flex gap-2" id="zone-exit-buttons"></div>
+
+    <button class="cyan" disabled id="zone-exit-add"><i>➕</i></button>
+</nav>
 
 <main class="cyan flex flex-col gap-4 h-full min-h-1/2 overflow-auto">
 
@@ -58,7 +64,7 @@
                 <div class="border-3 border-cyan-200 border-dotted mx-8 my-1 rounded-full size-32">
                     <div class="flex h-full items-center justify-center">
                         <div class="text-7xl" id="environment-scale">
-                            <i id="atmosphere-icon">😑</i>
+                            <i id="atmosphere-icon">🌐</i>
                         </div>
                     </div>
                 </div>
@@ -93,7 +99,7 @@
                 <h3 class="border-b border-gray-900 py-2 text-xl">ZONE</h3>
 
                 <div class="flex h-32 items-center justify-center">
-                    <span class="text-7xl" id="zone-label">-?-</span>
+                    <span class="text-7xl" id="zone-number">-?-</span>
                 </div>
             </div>
             <div class="flex gap-4 justify-center pt-1 text-2xl">
@@ -101,7 +107,7 @@
                     <i class="cyan">✋</i>
                 </button>
                 <button class="w-16" id="zone-modal-show">
-                    <i class="cyan">⮕</i>
+                    <i class="cyan">✍︎</i>
                 </button>
             </div>
         </div>
@@ -228,22 +234,22 @@
 
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-700/50" id="zone-modal">
     <div class="bg-cyan-900 rounded-lg shadow-xl max-w-md w-full mx-auto overflow-hidden">
-        <div class="flex gap-2 items-center p-4 border-b border-cyan-200">
-            <label class="text-lg font-semibold" for="zone-input">ZONE:</label>
-
-            <div class="relative">
-                <input class="w-20" id="zone-input" list="zone-exits" maxlength="4" required>
-                <datalist class="left-0 z-999" id="zone-exits"></datalist>
+        <div class="border-b border-cyan-200 flex flex-col gap-4 p-4">
+            <div class="flex gap-2 items-center" id="zone-exit-header">
+                <label class="text-lg font-semibold" for="zone-exit-title">EXIT:</label>
+                <input class="w-full" id="zone-exit-title">
             </div>
-
-            <input class="w-full" id="zone-description">
+            <div class="flex gap-2 items-center">
+                <label class="text-lg font-semibold" for="zone-input">ZONE:</label>
+                <input class="w-16" id="zone-input" maxlength="4" required>
+                <input class="w-full" id="zone-title">
+            </div>
         </div>
 
         <div class="flex flex-col gap-4 p-6">
             <div class="flex items-center">
                 <label class="mr-2" for="zone-light">AIR:</label>
-
-                <select class="p-4 text-center w-full" id="zone-atmosphere">
+                <select class="p-4 text-center" id="zone-atmosphere">
                     <option value="breathable">Breathable</option>
                     <option value="corrosive">Corrosive</option>
                     <option value="extreme_cold">Extreme cold</option>
@@ -253,11 +259,10 @@
                     <option value="vacuum">Vacuum</option>
                 </select>
 
-                <label class="ml-4 mr-2" for="zone-light">LIGHT:</label>
-                <select class="p-4 text-center w-1/2" id="zone-light">
-                    <option value="bright">Bright</option>
-                    <option value="dark">Dark</option>
-                    <option value="dim">Dim</option>
+                <label class="ml-4 mr-2" for="zone-scale">SCALE:</label>
+                <select class="p-4 text-center" id="zone-scale">
+                    <option value="normal">Normal</option>
+                    <option value="industrial">Industrial</option>
                 </select>
             </div>
             <div class="flex items-center">
@@ -267,22 +272,21 @@
                     <option value="zero_g">Zero-G</option>
                 </select>
 
-                <label class="ml-4 mr-2" for="zone-radiation">RADIATION:</label>
-                <select class="p-4 text-center w-1/2" id="zone-radiation">
+                <label class="ml-4 mr-2" for="zone-light">LIGHT:</label>
+                <select class="p-4 text-center" id="zone-light">
+                    <option value="bright">Bright</option>
+                    <option value="dark">Dark</option>
+                    <option value="dim">Dim</option>
+                </select>
+            </div>
+            <div class="flex items-center">
+                <label class="mr-2" for="zone-radiation">RADIATION:</label>
+                <select class="p-4 text-center" id="zone-radiation">
+                    <option value="unknown">Unknown</option>
                     <option value="trace">Trace</option>
                     <option value="acute">Acute</option>
                     <option value="lethal">Lethal</option>
                 </select>
-            </div>
-            <div class="flex items-center">
-                <label class="mr-2" for="zone-scale">SCALE:</label>
-                <select class="p-4 text-center" id="zone-scale">
-                    <option value="normal">Normal</option>
-                    <option value="industrial">Industrial</option>
-                </select>
-
-                <label class="ml-4 mr-2" for="zone-exit-via">VIA:</label>
-                <input class="w-full" disabled id="zone-exit-via">
             </div>
             <div class="flex items-center">
                 <label class="mr-2" for="zone-encounter-rate">%ENC:</label>
@@ -317,18 +321,20 @@
     const sessionInput = document.getElementById('session-input');
     const sessionOutput = document.getElementById('session-output');
     const zoneAtmosphere = document.getElementById('zone-atmosphere');
-    const zoneDescription = document.getElementById('zone-description');
     const zoneEncounterRate = document.getElementById('zone-encounter-rate');
-    const zoneExits = document.getElementById('zone-exits');
-    const zoneExitVia = document.getElementById('zone-exit-via');
+    const zoneExitAdd = document.getElementById('zone-exit-add');
+    const zoneExitButtons = document.getElementById('zone-exit-buttons');
+    const zoneExitHeader = document.getElementById('zone-exit-header');
+    const zoneExitTitle = document.getElementById('zone-exit-title');
     const zoneGravity = document.getElementById('zone-gravity');
     const zoneInput = document.getElementById('zone-input');
-    const zoneLabel = document.getElementById('zone-label');
     const zoneLight = document.getElementById('zone-light');
     const zoneModal = document.getElementById('zone-modal');
+    const zoneNumber = document.getElementById('zone-number');
     const zonePanel = document.getElementById('zone-panel');
     const zoneRadiation = document.getElementById('zone-radiation');
     const zoneScale = document.getElementById('zone-scale');
+    const zoneTitle = document.getElementById('zone-title');
 
     const clockEpochOffset = 12_622_780_800_000; // 400 years (skip 3 leap days)
     const clockInterval = 600_000; // 10 minutes
@@ -375,8 +381,9 @@
             dark: ['🌕', 'ruby pulse-2s'], // 🔦👀👁⚫○
             dim: ['🌙', 'amber'], // 🌖
         },
-        
+
         radiation: {
+            unknown: ['🟤', 'opacity-50'],
             trace: ['☢', 'opacity-50'], // 🟡⚪●⋯
             acute: ['☢', 'amber pulse-2s'], // ✳︎
             lethal: ['☢', 'ruby pulse'], // 🔥‼︎💀☠
@@ -389,7 +396,9 @@
     let current = null;
     let journal = null;
     let zones = null;
-    
+
+    // TODO separate exits (nav) from zone details
+    // TODO exit details: bulkhead (BHD) door, airlock (A/L), &c
     // TODO combat rounds
     // TODO depth gauge
     // TODO fatigue/exhaustion
@@ -409,15 +418,14 @@
             sessionInput.value = '';
         }
 
-        if (! comment && (current.encounter ?? false)) {
-            comment = (current.encounter.roll ?? 'ENC').toLocaleString().padStart(2, '0');
+        if (! comment && current.encounterType) {
+            comment = current.encounterType;
         }
-        
+
         displayJournalEntry(recordJournalEntry(comment || 'NTR'));
 
-        current.encounter = null;
+        current.encounterType = null;
         current.time += clockInterval;
-        current.turn++;
         window.localStorage.setItem('mosh:current', JSON.stringify(current));
         updateClock();
 
@@ -431,7 +439,7 @@
             formatTime(entry.time),
             (entry.zone ?? '---').padStart(3, '0'),
             entry.comment,
-        ].join(' '), (entry.encounter ?? false) ? 'amber' : null);
+        ].join(' '), entry.encounterType ? 'amber' : null);
     }
 
     function displaySessionOutput(text, style = null) {
@@ -446,18 +454,20 @@
         sessionOutput.appendChild(entry);
     }
 
-    function enableCountdownButtons() {
+    function enableButtons() {
         countdownPause.removeAttribute('disabled');
         countdownSkip.removeAttribute('disabled');
         encounterShow.removeAttribute('disabled');
+        zoneExitAdd.removeAttribute('disabled');
     }
 
     function expireCountdown() {
         suspendCountdown();
 
         if (Math.random() < current.encounterRate) {
-            current.encounter = {roll: Math.floor(Math.random() * 10)};
-            sessionInput.value = current.encounter.roll.toLocaleString().padStart(2, '0');
+            current.encounterType = 'E' + Math.floor(Math.random() * 10).toLocaleString().padStart(2, '0');
+            sessionInput.value = current.encounterType;
+            sessionInput.focus();
             playTone(660, 1.0, 'sine');
             updateEncounter();
         } else {
@@ -502,7 +512,7 @@
     function recordJournalEntry(comment) {
         let entry = {
             comment: comment,
-            encounter: current.encounter ?? null,
+            encounterType: current.encounterType,
             time: current.time,
             zone: current.zone,
         }
@@ -553,8 +563,6 @@
             formatDate(current.time),
             formatTime(current.time),
         ].join(' ');
-
-        // document.getElementById('turn').innerText = current.turn.toLocaleString().padStart(3, '0');
     }
 
     function updateCountdown() {
@@ -598,8 +606,26 @@
     }
 
     function updateEnvironment(environment) {
-        countdownHeader.innerText = environment.description || ('ZONE ' + current.zone);
-        zoneLabel.innerText = current.zone;
+        countdownHeader.innerText = environment.title || ('ZONE ' + current.zone);
+        zoneExitButtons.innerHTML = '';
+
+        Object.entries(environment.exits ?? {}).forEach(function (zone, exit) {
+            let button = document.createElement('button');
+
+            button.setAttribute('class', 'cyan');
+
+            if (exit.title ?? false) {
+                button.setAttribute('title', exit.title);
+            }
+
+            // TODO exit type
+            button.innerText = '▸' + zone;
+
+            zoneExitButtons.appendChild(button);
+            // TODO add event handler…
+        });
+
+        zoneNumber.innerText = current.zone;
 
         if ((environment.scale ?? false) === 'industrial') {
             environmentScale.classList.remove('text-7xl');
@@ -608,33 +634,20 @@
             environmentScale.classList.remove('text-3xl');
             environmentScale.classList.add('text-7xl');
         }
-        
+
         updateElement(atmosphereIcon, ...icons.atmosphere[environment.atmosphere]);
         updateElement(radiationIcon, ...icons.radiation[environment.radiation]);
         updateElement(gravityIcon, ...icons.gravity[environment.gravity]);
         updateElement(lightIcon, ...icons.light[environment.light]);
     }
 
-    function updateZoneModal(environment, exits = true) {
-        if (exits) {
-            zoneExits.innerHTML = '';
-
-            Object.keys(environment.exits ?? {}).forEach(function (exit) {
-                let option = document.createElement('option');
-
-                option.setAttribute('value', exit);
-
-                zoneExits.appendChild(option);
-            });
-        }
-
-        zoneDescription.value = environment.description ?? '';
-
+    function updateZoneModal(environment) {
         zoneAtmosphere.value = environment.atmosphere ?? 'breathable';
         zoneGravity.value = environment.gravity ?? 'standard';
         zoneLight.value = environment.light ?? 'bright';
-        zoneRadiation.value = environment.radiation ?? 'trace';
+        zoneRadiation.value = environment.radiation ?? 'unknown';
         zoneScale.value = environment.scale ?? 'normal';
+        zoneTitle.value = environment.title ?? '';
 
         zoneEncounterRate.value = current.encounterRate ?? 0.1;
     }
@@ -662,25 +675,27 @@
     });
 
     encounterShow.addEventListener('click', function () {
-        current.encounter = {};
-        sessionInput.value = 'Encounter';
+        current.encounterType = 'ENC';
+        sessionInput.value = current.encounterType;
+        sessionInput.focus();
         suspendCountdown();
         updateEncounter();
     });
 
     document.getElementById('encounter-dismiss').addEventListener('click', function () {
-        current.encounter = null;
+        current.encounterType = null;
         sessionInput.value = '';
+        sessionInput.focus();
         encounterPanel.classList.add('hidden');
         zonePanel.classList.remove('hidden');
-        enableCountdownButtons();
+        enableButtons();
         resumeCountdown();
     });
 
     document.getElementById('encounter-resolve').addEventListener('click', function () {
         encounterPanel.classList.add('hidden');
         zonePanel.classList.remove('hidden');
-        enableCountdownButtons();
+        enableButtons();
         advanceClock();
         resumeCountdown();
     });
@@ -692,7 +707,7 @@
             if (! comment) {
                 return;
             }
-            
+
             if (comment.startsWith('/')) {
                 let arguments = comment.substr(1).split(' ');
                 let command = arguments.shift().toLocaleLowerCase();
@@ -700,7 +715,7 @@
                 if (command in commands) {
                     commands[command](... arguments);
                 }
-            } else if (current.encounter) {
+            } else if (current.encounterType) {
                 advanceClock();
             } else {
                 displayJournalEntry(recordJournalEntry(comment));
@@ -712,30 +727,42 @@
         }
     });
 
-    zoneInput.addEventListener('blur', function () {
-        const zone = zoneInput.value.trim().toUpperCase();
-
-        if (zone in zones) {
-            updateZoneModal(zones[zone], false);
-        } else if (zone) {
-            zoneDescription.value = '';
-        }
-
-        if (current.zone ?? false) {
-            if (current.zone === zone) {
-                zoneExitVia.setAttribute('disabled', 'disabled');
-                zoneExitVia.value = '';
-            } else {
-                zoneExitVia.removeAttribute('disabled');
-
-                let environment = zones[current.zone];
-
-                if (environment.exits ?? false) {
-                    zoneExitVia.value = environment.exits[zone].via ?? '';
-                }
-            }
-        }
+    zoneExitAdd.addEventListener('click', function () {
+        updateZoneModal(zones[current.zone]);
+        zoneExitHeader.classList.remove('hidden');
+        zoneExitTitle.value = '';
+        zoneInput.removeAttribute('disabled');
+        zoneInput.value = '';
+        zoneTitle.value = '';
+        zoneModal.classList.remove('hidden');
+        zoneExitTitle.focus();
+        suspendCountdown();
     });
+
+    // zoneInput.addEventListener('blur', function () {
+    //     const zone = zoneInput.value.trim().toUpperCase();
+
+    //     if (zone in zones) {
+    //         updateZoneModal(zones[zone]);
+    //     } else if (zone) {
+    //         zoneTitle.value = '';
+    //     }
+
+    //     if (current.zone ?? false) {
+    //         if (current.zone === zone) {
+    //             zoneExitTitle.setAttribute('disabled', 'disabled');
+    //             zoneExitTitle.value = '';
+    //         } else {
+    //             zoneExitTitle.removeAttribute('disabled');
+
+    //             let environment = zones[current.zone];
+
+    //             if (environment.exits ?? false) {
+    //                 zoneExitTitle.value = environment.exits[zone].title ?? '';
+    //             }
+    //         }
+    //     }
+    // });
 
     document.getElementById('zone-modal-cancel').addEventListener('click', function () {
         zoneModal.classList.add('hidden');
@@ -749,33 +776,41 @@
             return;
         }
 
-        const via = zoneExitVia.value.trim();
+        // TODO handle exits
+
+        // const exitTitle = zoneExitTitle.value.trim();
 
         if (! (current.zone ?? false)) {
-            enableCountdownButtons();
-        } else if (current.zone !== zone) {
-            if (via) {
-                let environment = zones[current.zone];
-                environment.exits = environment.exits ?? {};
-                environment.exits[zone] = {via: via};
-            }
+            enableButtons();
+        // } else if (current.zone !== zone) {
+        //     if (exitTitle) {
+        //         let environment = zones[current.zone];
+        //         environment.exits = environment.exits ?? {};
+        //         environment.exits[zone] = {title: exitTitle};
+        //     }
 
-            advanceClock();
+        //     advanceClock();
         }
-        
+
+        if (zoneExitTitle.disabled) {
+            // update current zone
+        } else {
+            // add exit from current zone to new/existing zone
+        }
+
         let environment = zones[zone] ?? {};
 
-        environment.description = zoneDescription.value;
         environment.atmosphere = zoneAtmosphere.value;
         environment.gravity = zoneGravity.value;
         environment.light = zoneLight.value;
         environment.radiation = zoneRadiation.value;
         environment.scale = zoneScale.value;
+        environment.title = zoneTitle.value;
         environment.exits = environment.exits ?? {};
 
-        if (via) {
-            environment.exits[current.zone] = {via: via};
-        }
+        // if (exitTitle) {
+        //     environment.exits[current.zone] = {title: exitTitle};
+        // }
 
         zones[zone] = environment;
 
@@ -792,10 +827,23 @@
     });
 
     document.getElementById('zone-modal-show').addEventListener('click', function () {
-        zoneInput.value = current.zone ?? '';
         updateZoneModal(zones[current.zone] ?? {});
+        zoneExitHeader.classList.add('hidden');
+
+        if (current.zone ?? false) {
+            zoneInput.setAttribute('disabled', 'disabled');
+            zoneInput.value = current.zone;
+        } else {
+            zoneInput.removeAttribute('disabled');
+            zoneInput.value = '';
+        }
+
         zoneModal.classList.remove('hidden');
-        zoneInput.focus();
+
+        if (! zoneInput.value) {
+            zoneInput.focus();
+        }
+
         suspendCountdown();
     });
 
@@ -805,10 +853,9 @@
         let zonesData = window.localStorage.getItem('mosh:zones');
 
         current = currentData ? JSON.parse(currentData) : {
-            encounter: null,
             encounterRate: 0.1,
+            encounterType: null,
             time: Math.floor((Date.now() + clockEpochOffset) / clockInterval) * clockInterval,
-            turn: 1,
             zone: null,
         };
 
@@ -823,7 +870,7 @@
 
             updateEnvironment(environment);
             updateZoneModal(environment);
-            enableCountdownButtons();
+            enableButtons();
             updateCountdown();
         }
     });
