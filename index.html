@@ -235,14 +235,14 @@
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-700/50" id="zone-modal">
     <div class="bg-cyan-900 rounded-lg shadow-xl max-w-md w-full mx-auto overflow-hidden">
         <div class="border-b border-cyan-200 flex flex-col gap-4 p-4">
-            <div class="flex gap-2 items-center" id="zone-exit-header">
-                <label class="text-lg font-semibold" for="zone-exit-title">EXIT:</label>
-                <input class="w-full" id="zone-exit-title">
-            </div>
             <div class="flex gap-2 items-center">
                 <label class="text-lg font-semibold" for="zone-input">ZONE:</label>
                 <input class="w-16" id="zone-input" maxlength="4" required>
                 <input class="w-full" id="zone-title">
+            </div>
+            <div class="flex gap-2 items-center" id="zone-exit-fields">
+                <label class="text-lg font-semibold" for="zone-exit-title">EXIT:</label>
+                <input class="w-full" disabled id="zone-exit-title">
             </div>
         </div>
 
@@ -282,13 +282,13 @@
             <div class="flex items-center">
                 <label class="mr-2" for="zone-radiation">RADIATION:</label>
                 <select class="p-4 text-center" id="zone-radiation">
-                    <option value="unknown">Unknown</option>
+                    <option value="">Unknown</option>
                     <option value="trace">Trace</option>
                     <option value="acute">Acute</option>
                     <option value="lethal">Lethal</option>
                 </select>
             </div>
-            <div class="flex items-center">
+            <div class="flex items-center" id="zone-encounter-fields">
                 <label class="mr-2" for="zone-encounter-rate">%ENC:</label>
                 <input class="w-full" id="zone-encounter-rate" max="1.0" min="0.0" step="0.05" type="range" value="0.1">
             </div>
@@ -321,10 +321,11 @@
     const sessionInput = document.getElementById('session-input');
     const sessionOutput = document.getElementById('session-output');
     const zoneAtmosphere = document.getElementById('zone-atmosphere');
+    const zoneEncounterFields = document.getElementById('zone-encounter-fields');
     const zoneEncounterRate = document.getElementById('zone-encounter-rate');
     const zoneExitAdd = document.getElementById('zone-exit-add');
     const zoneExitButtons = document.getElementById('zone-exit-buttons');
-    const zoneExitHeader = document.getElementById('zone-exit-header');
+    const zoneExitFields = document.getElementById('zone-exit-fields');
     const zoneExitTitle = document.getElementById('zone-exit-title');
     const zoneGravity = document.getElementById('zone-gravity');
     const zoneInput = document.getElementById('zone-input');
@@ -383,7 +384,7 @@
         },
 
         radiation: {
-            unknown: ['🟤', 'opacity-50'],
+            '': ['🟤', 'opacity-50'],
             trace: ['☢', 'opacity-50'], // 🟡⚪●⋯
             acute: ['☢', 'amber pulse-2s'], // ✳︎
             lethal: ['☢', 'ruby pulse'], // 🔥‼︎💀☠
@@ -399,8 +400,9 @@
 
     // TODO separate exits (nav) from zone details
     // TODO exit details: bulkhead (BHD) door, airlock (A/L), &c
-    // TODO combat rounds
+    // TODO extract %enc to separate modal
     // TODO depth gauge
+    // TODO combat rounds
     // TODO fatigue/exhaustion
     // TODO fast travel
     // TODO industrial scale: three turns to traverse?
@@ -609,7 +611,7 @@
         countdownHeader.innerText = environment.title || ('ZONE ' + current.zone);
         zoneExitButtons.innerHTML = '';
 
-        Object.entries(environment.exits ?? {}).forEach(function (zone, exit) {
+        Object.entries(environment.exits ?? {}).forEach(function ([zone, exit]) {
             let button = document.createElement('button');
 
             button.setAttribute('class', 'cyan');
@@ -618,11 +620,18 @@
                 button.setAttribute('title', exit.title);
             }
 
-            // TODO exit type
+            button.setAttribute('value', zone);
             button.innerText = '▸' + zone;
+            // TODO exit type
+
+            button.addEventListener('click', function () {
+                current.zone = zone;
+                updateEnvironment(zones[zone] ?? {});
+                advanceClock();
+                resumeCountdown();
+            });
 
             zoneExitButtons.appendChild(button);
-            // TODO add event handler…
         });
 
         zoneNumber.innerText = current.zone;
@@ -645,7 +654,7 @@
         zoneAtmosphere.value = environment.atmosphere ?? 'breathable';
         zoneGravity.value = environment.gravity ?? 'standard';
         zoneLight.value = environment.light ?? 'bright';
-        zoneRadiation.value = environment.radiation ?? 'unknown';
+        zoneRadiation.value = environment.radiation ?? '';
         zoneScale.value = environment.scale ?? 'normal';
         zoneTitle.value = environment.title ?? '';
 
@@ -695,8 +704,8 @@
     document.getElementById('encounter-resolve').addEventListener('click', function () {
         encounterPanel.classList.add('hidden');
         zonePanel.classList.remove('hidden');
-        enableButtons();
         advanceClock();
+        enableButtons();
         resumeCountdown();
     });
 
@@ -729,7 +738,9 @@
 
     zoneExitAdd.addEventListener('click', function () {
         updateZoneModal(zones[current.zone]);
-        zoneExitHeader.classList.remove('hidden');
+        zoneEncounterFields.classList.add('hidden');
+        zoneExitFields.classList.remove('hidden');
+        zoneExitTitle.removeAttribute('disabled');
         zoneExitTitle.value = '';
         zoneInput.removeAttribute('disabled');
         zoneInput.value = '';
@@ -738,31 +749,6 @@
         zoneExitTitle.focus();
         suspendCountdown();
     });
-
-    // zoneInput.addEventListener('blur', function () {
-    //     const zone = zoneInput.value.trim().toUpperCase();
-
-    //     if (zone in zones) {
-    //         updateZoneModal(zones[zone]);
-    //     } else if (zone) {
-    //         zoneTitle.value = '';
-    //     }
-
-    //     if (current.zone ?? false) {
-    //         if (current.zone === zone) {
-    //             zoneExitTitle.setAttribute('disabled', 'disabled');
-    //             zoneExitTitle.value = '';
-    //         } else {
-    //             zoneExitTitle.removeAttribute('disabled');
-
-    //             let environment = zones[current.zone];
-
-    //             if (environment.exits ?? false) {
-    //                 zoneExitTitle.value = environment.exits[zone].title ?? '';
-    //             }
-    //         }
-    //     }
-    // });
 
     document.getElementById('zone-modal-cancel').addEventListener('click', function () {
         zoneModal.classList.add('hidden');
@@ -776,29 +762,8 @@
             return;
         }
 
-        // TODO handle exits
-
-        // const exitTitle = zoneExitTitle.value.trim();
-
-        if (! (current.zone ?? false)) {
-            enableButtons();
-        // } else if (current.zone !== zone) {
-        //     if (exitTitle) {
-        //         let environment = zones[current.zone];
-        //         environment.exits = environment.exits ?? {};
-        //         environment.exits[zone] = {title: exitTitle};
-        //     }
-
-        //     advanceClock();
-        }
-
-        if (zoneExitTitle.disabled) {
-            // update current zone
-        } else {
-            // add exit from current zone to new/existing zone
-        }
-
-        let environment = zones[zone] ?? {};
+        const currentEnvironment = zones[current.zone];
+        const environment = zones[zone] ?? {};
 
         environment.atmosphere = zoneAtmosphere.value;
         environment.gravity = zoneGravity.value;
@@ -808,27 +773,43 @@
         environment.title = zoneTitle.value;
         environment.exits = environment.exits ?? {};
 
-        // if (exitTitle) {
-        //     environment.exits[current.zone] = {title: exitTitle};
-        // }
-
         zones[zone] = environment;
 
-        current.encounterRate = zoneEncounterRate.value;
-        current.zone = zone;
+        if (zoneExitTitle.disabled) { // edit details of current zone
+            if (! (current.zone ?? false)) {
+                current.zone = zone;
+                window.localStorage.setItem('mosh:current', JSON.stringify(current));
+                enableButtons();
+            }
 
-        window.localStorage.setItem('mosh:current', JSON.stringify(current));
+            current.encounterRate = zoneEncounterRate.value;
+        } else { // add exit from current zone to new/existing zone
+            if (zone === current.zone) { // disallow exit to self
+                zoneInput.focus();
+                return;
+            }
+            
+            const exit = {
+                title: zoneExitTitle.value.trim(),
+            };
+
+            currentEnvironment.exits[zone] = exit;
+            environment.exits[current.zone] = exit;
+        }
+
         window.localStorage.setItem('mosh:zones', JSON.stringify(zones));
         zoneModal.classList.add('hidden');
         sessionInput.focus();
 
-        updateEnvironment(environment);
+        updateEnvironment(currentEnvironment);
         resumeCountdown();
     });
 
     document.getElementById('zone-modal-show').addEventListener('click', function () {
         updateZoneModal(zones[current.zone] ?? {});
-        zoneExitHeader.classList.add('hidden');
+        zoneEncounterFields.classList.remove('hidden');
+        zoneExitFields.classList.add('hidden');
+        zoneExitTitle.setAttribute('disabled', 'disabled');
 
         if (current.zone ?? false) {
             zoneInput.setAttribute('disabled', 'disabled');
