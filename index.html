@@ -26,7 +26,16 @@
         @apply bg-cyan-800;
     }
     nav button {
-        @apply bg-cyan-600/25;
+        @apply bg-cyan-600/25 flex gap-1 items-baseline px-2 py-0;
+    }
+    nav code {
+        @apply text-lg;
+    }
+    nav i {
+        @apply py-1 text-sm;
+    }
+    nav label {
+        @apply text-base;
     }
     select {
         @apply appearance-none border-1 border-gray-900 cursor-pointer pl-4 py-1 rounded-lg;
@@ -39,7 +48,7 @@
 </head>
 <body class="bg-cathode flex flex-col gap-2 h-screen">
 
-<header class="flex justify-between">
+<header class="flex flex-none justify-between">
     <div>
         <span class="cyan" id="clock">--/--/---- --:--</span>
     </div>
@@ -48,8 +57,8 @@
     </div>
 </header>
 
-<nav class="flex gap-2 h-14 mb-2 overflow-x-scroll text-sm">
-    <div class="flex gap-2" id="zone-exit-buttons"></div>
+<nav class="flex flex-none gap-1 h-8 overflow-x-scroll">
+    <div class="flex gap-1" id="zone-exit-buttons"></div>
 
     <button class="cyan" disabled id="zone-exit-add"><i>➕</i></button>
 </nav>
@@ -63,9 +72,7 @@
 
                 <div class="border-3 border-cyan-200 border-dotted mx-8 my-1 rounded-full size-32">
                     <div class="flex h-full items-center justify-center">
-                        <div class="text-7xl" id="environment-scale">
-                            <i id="atmosphere-icon">🌐</i>
-                        </div>
+                        <i class="text-7xl" id="atmosphere-icon">🌐</i>
                     </div>
                 </div>
             </div>
@@ -228,7 +235,7 @@
     <div class="flex flex-col-reverse gap-1 whitespace-nowrap" id="session-output"></div>
 </section>
 
-<footer>
+<footer class="flex-none">
     <input class="w-full" id="session-input" placeholder=">_">
 </footer>
 
@@ -243,6 +250,15 @@
             <div class="flex gap-2 items-center" id="zone-exit-fields">
                 <label class="text-lg font-semibold" for="zone-exit-title">EXIT:</label>
                 <input class="w-full" disabled id="zone-exit-title">
+                <select class="p-4 text-center" id="zone-exit-type">
+                    <option value="">Open</option>
+                    <option value="airlock">Airlock</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="door">Door</option>
+                    <option value="duct">Duct/Shaft</option>
+                    <option value="hidden">Hidden</option>
+                    <option value="locked">Locked</option>
+                </select>
             </div>
         </div>
 
@@ -259,10 +275,11 @@
                     <option value="vacuum">Vacuum</option>
                 </select>
 
-                <label class="ml-4 mr-2" for="zone-scale">SCALE:</label>
-                <select class="p-4 text-center" id="zone-scale">
+                <label class="ml-4 mr-2" for="zone-space">SPACE:</label>
+                <select class="p-4 text-center" id="zone-space">
                     <option value="normal">Normal</option>
                     <option value="industrial">Industrial</option>
+                    <option value="confined">Confined</option>
                 </select>
             </div>
             <div class="flex items-center">
@@ -277,9 +294,10 @@
                     <option value="bright">Bright</option>
                     <option value="dark">Dark</option>
                     <option value="dim">Dim</option>
+                    <option value="flickering">Flickering</option>
                 </select>
             </div>
-            <div class="flex items-center">
+            <div class="hidden flex items-center">
                 <label class="mr-2" for="zone-radiation">RADIATION:</label>
                 <select class="p-4 text-center" id="zone-radiation">
                     <option value="">Unknown</option>
@@ -314,7 +332,6 @@
     const countdownState = document.getElementById('countdown-state');
     const encounterPanel = document.getElementById('encounter-panel');
     const encounterShow = document.getElementById('encounter-show');
-    const environmentScale = document.getElementById('environment-scale');
     const gravityIcon = document.getElementById('gravity-icon');
     const lightIcon = document.getElementById('light-icon');
     const radiationIcon = document.getElementById('radiation-icon');
@@ -327,6 +344,7 @@
     const zoneExitButtons = document.getElementById('zone-exit-buttons');
     const zoneExitFields = document.getElementById('zone-exit-fields');
     const zoneExitTitle = document.getElementById('zone-exit-title');
+    const zoneExitType = document.getElementById('zone-exit-type');
     const zoneGravity = document.getElementById('zone-gravity');
     const zoneInput = document.getElementById('zone-input');
     const zoneLight = document.getElementById('zone-light');
@@ -334,7 +352,7 @@
     const zoneNumber = document.getElementById('zone-number');
     const zonePanel = document.getElementById('zone-panel');
     const zoneRadiation = document.getElementById('zone-radiation');
-    const zoneScale = document.getElementById('zone-scale');
+    const zoneSpace = document.getElementById('zone-space');
     const zoneTitle = document.getElementById('zone-title');
 
     const clockEpochOffset = 12_622_780_800_000; // 400 years (skip 3 leap days)
@@ -350,12 +368,17 @@
             displaySessionOutput('Local storage cleared.', 'blink ruby');
         },
 
+        del: function (exit) {
+            let environment = zones[current.zone];
+            delete environment.exits[exit];
+            window.localStorage.setItem('mosh:zones', JSON.stringify(zones));
+            updateEnvironment(environment);
+        },
+
         dump: function () {
             let dump = {current: current, journal: journal, zones: zones};
             console.log(JSON.stringify(dump));
         },
-
-        // TODO delete exit
 
         // TODO move, air, gravity, light, radiation
         // TODO describe room, exits, amend journal entry
@@ -365,11 +388,21 @@
         atmosphere: {
             breathable: ['😐'], // 🙂
             corrosive: ['⚠︎', 'amber'], // 🫠
-            extreme_cold: ['🥶', 'sapphire'],
+            extreme_cold: ['🥶', 'cyan'],
             extreme_heat: ['🥵', 'amber'],
             hypoxic: ['😫', 'amber'], // 😩
             toxic: ['☠', 'amber'], // 🤮
             vacuum: ['😵', 'ruby'], // 😱
+        },
+
+        exit: {
+            '': ['◇'], // ◌□▷☒⋯
+            airlock: ['◆'], // ●
+            blocked: ['■'], // ▣△
+            door: ['○'], // ○
+            duct: ['□'], // ■▪
+            hidden: ['⊘'],
+            locked: ['●'], // ◈
         },
 
         gravity: {
@@ -379,15 +412,22 @@
 
         light: {
             bright: ['🔆'], // 🌞🌑⚪●
-            dark: ['🌕', 'ruby pulse-2s'], // 🔦👀👁⚫○
+            dark: ['🌕', 'ruby', 'pulse-2s'], // 🔦👀👁⚫○
             dim: ['🌙', 'amber'], // 🌖
+            flickering: ['🏮', 'flicker-1s'],
         },
 
         radiation: {
             '': ['🟤', 'opacity-50'],
             trace: ['☢', 'opacity-50'], // 🟡⚪●⋯
-            acute: ['☢', 'amber pulse-2s'], // ✳︎
-            lethal: ['☢', 'ruby pulse'], // 🔥‼︎💀☠
+            acute: ['☢', 'amber', 'pulse-2s'], // ✳︎
+            lethal: ['☢', 'ruby', 'pulse'], // 🔥‼︎💀☠
+        },
+
+        space: {
+            normal: ['text-7xl'],
+            industrial: ['text-3xl'],
+            confined: ['text-7xl', 'border-x-3', 'border-cyan-200', 'border-dotted'],
         },
     };
 
@@ -398,14 +438,13 @@
     let journal = null;
     let zones = null;
 
-    // TODO separate exits (nav) from zone details
-    // TODO exit details: bulkhead (BHD) door, airlock (A/L), &c
+    // TOOD exclude blank values from local storage
     // TODO extract %enc to separate modal
     // TODO depth gauge
     // TODO combat rounds
     // TODO fatigue/exhaustion
     // TODO fast travel
-    // TODO industrial scale: three turns to traverse?
+    // TODO industrial space: three turns to traverse?
     // TODO node graph: sigmajs.org
     // TODO encounter tables
     // TODO sites/levels
@@ -444,13 +483,13 @@
         ].join(' '), entry.encounterType ? 'amber' : null);
     }
 
-    function displaySessionOutput(text, style = null) {
+    function displaySessionOutput(text, ...classes) {
         const entry = document.createElement('p');
 
         entry.innerText = text;
 
-        if (style) {
-            entry.setAttribute('class', style);
+        if (classes) {
+            entry.setAttribute('class', classes.join(' '));
         }
 
         sessionOutput.appendChild(entry);
@@ -590,11 +629,11 @@
         ].join(':');
     }
 
-    function updateElement(element, text, style = null) {
+    function updateElement(element, text, ...classes) {
         element.innerText = text;
 
-        if (style) {
-            element.setAttribute('class', style);
+        if (classes) {
+            element.setAttribute('class', classes.join(' '));
         } else {
             element.removeAttribute('class');
         }
@@ -611,18 +650,28 @@
         countdownHeader.innerText = environment.title || ('ZONE ' + current.zone);
         zoneExitButtons.innerHTML = '';
 
-        Object.entries(environment.exits ?? {}).forEach(function ([zone, exit]) {
-            let button = document.createElement('button');
+        Object.keys(environment.exits).sort().forEach(function (zone) {
+            const button = document.createElement('button');
+            const icon = document.createElement('code');
+            const label = document.createElement('label');
+            const exit = environment.exits[zone];
 
             button.setAttribute('class', 'cyan');
 
-            if (exit.title ?? false) {
-                button.setAttribute('title', exit.title);
+            if (exit.title || exit.type) {
+                button.setAttribute('title', exit.title || exit.type.toLocaleUpperCase());
             }
 
             button.setAttribute('value', zone);
-            button.innerText = '▸' + zone;
-            // TODO exit type
+
+            updateElement(icon, ...[
+                ...icons.exit[exit.type ?? ''],
+            ]);
+
+            button.appendChild(icon);
+
+            label.innerText = zone;
+            button.appendChild(label);
 
             button.addEventListener('click', function () {
                 current.zone = zone;
@@ -636,15 +685,11 @@
 
         zoneNumber.innerText = current.zone;
 
-        if ((environment.scale ?? false) === 'industrial') {
-            environmentScale.classList.remove('text-7xl');
-            environmentScale.classList.add('text-3xl');
-        } else {
-            environmentScale.classList.remove('text-3xl');
-            environmentScale.classList.add('text-7xl');
-        }
+        updateElement(atmosphereIcon, ...[
+            ...icons.atmosphere[environment.atmosphere],
+            ...icons.space[environment.space],
+        ]);
 
-        updateElement(atmosphereIcon, ...icons.atmosphere[environment.atmosphere]);
         updateElement(radiationIcon, ...icons.radiation[environment.radiation]);
         updateElement(gravityIcon, ...icons.gravity[environment.gravity]);
         updateElement(lightIcon, ...icons.light[environment.light]);
@@ -655,7 +700,7 @@
         zoneGravity.value = environment.gravity ?? 'standard';
         zoneLight.value = environment.light ?? 'bright';
         zoneRadiation.value = environment.radiation ?? '';
-        zoneScale.value = environment.scale ?? 'normal';
+        zoneSpace.value = environment.space ?? 'normal';
         zoneTitle.value = environment.title ?? '';
 
         zoneEncounterRate.value = current.encounterRate ?? 0.1;
@@ -742,11 +787,12 @@
         zoneExitFields.classList.remove('hidden');
         zoneExitTitle.removeAttribute('disabled');
         zoneExitTitle.value = '';
+        zoneExitType.value = '';
         zoneInput.removeAttribute('disabled');
         zoneInput.value = '';
         zoneTitle.value = '';
         zoneModal.classList.remove('hidden');
-        zoneExitTitle.focus();
+        zoneInput.focus();
         suspendCountdown();
     });
 
@@ -755,22 +801,21 @@
     });
 
     document.getElementById('zone-modal-confirm').addEventListener('click', function () {
-        const zone = zoneInput.value.trim().toUpperCase();
+        const zone = zoneInput.value.trim().toLocaleUpperCase();
 
         if (! zone) {
             zoneInput.focus();
             return;
         }
 
-        const currentEnvironment = zones[current.zone];
         const environment = zones[zone] ?? {};
 
         environment.atmosphere = zoneAtmosphere.value;
         environment.gravity = zoneGravity.value;
         environment.light = zoneLight.value;
         environment.radiation = zoneRadiation.value;
-        environment.scale = zoneScale.value;
-        environment.title = zoneTitle.value;
+        environment.space = zoneSpace.value;
+        environment.title = zoneTitle.value.trim().toLocaleUpperCase();
         environment.exits = environment.exits ?? {};
 
         zones[zone] = environment;
@@ -782,26 +827,24 @@
                 enableButtons();
             }
 
-            current.encounterRate = zoneEncounterRate.value;
+            current.encounterRate = Number.parseFloat(zoneEncounterRate.value);
         } else { // add exit from current zone to new/existing zone
             if (zone === current.zone) { // disallow exit to self
                 zoneInput.focus();
                 return;
             }
             
-            const exit = {
-                title: zoneExitTitle.value.trim(),
+            environment.exits[current.zone] = zones[current.zone].exits[zone] = {
+                title: zoneExitTitle.value.trim().toLocaleUpperCase(),
+                type: zoneExitType.value,
             };
-
-            currentEnvironment.exits[zone] = exit;
-            environment.exits[current.zone] = exit;
         }
 
         window.localStorage.setItem('mosh:zones', JSON.stringify(zones));
         zoneModal.classList.add('hidden');
         sessionInput.focus();
 
-        updateEnvironment(currentEnvironment);
+        updateEnvironment(zones[current.zone]);
         resumeCountdown();
     });
 
@@ -821,7 +864,9 @@
 
         zoneModal.classList.remove('hidden');
 
-        if (! zoneInput.value) {
+        if (zoneInput.value) {
+            zoneTitle.focus();
+        } else {
             zoneInput.focus();
         }
 
