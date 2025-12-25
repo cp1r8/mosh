@@ -50,7 +50,7 @@
 
 <header class="flex flex-none justify-between">
     <div>
-        <span class="cyan" id="clock">--/--/---- --:--</span>
+        <span class="cyan" id="session-clock">--/--/---- --:--</span>
     </div>
     <div>
         <span class="ruby" id="countdown-state">⏹ STOPPED</span>
@@ -331,10 +331,13 @@
     const countdownSpeed = document.getElementById('countdown-speed');
     const countdownState = document.getElementById('countdown-state');
     const encounterPanel = document.getElementById('encounter-panel');
+    const encounterDismiss = document.getElementById('encounter-dismiss');
+    const encounterResolve = document.getElementById('encounter-resolve');
     const encounterShow = document.getElementById('encounter-show');
     const gravityIcon = document.getElementById('gravity-icon');
     const lightIcon = document.getElementById('light-icon');
     const radiationIcon = document.getElementById('radiation-icon');
+    const sessionClock = document.getElementById('session-clock');
     const sessionInput = document.getElementById('session-input');
     const sessionOutput = document.getElementById('session-output');
     const zoneAtmosphere = document.getElementById('zone-atmosphere');
@@ -349,6 +352,9 @@
     const zoneInput = document.getElementById('zone-input');
     const zoneLight = document.getElementById('zone-light');
     const zoneModal = document.getElementById('zone-modal');
+    const zoneModalCancel = document.getElementById('zone-modal-cancel');
+    const zoneModalConfirm = document.getElementById('zone-modal-confirm');
+    const zoneModalShow = document.getElementById('zone-modal-show');
     const zoneNumber = document.getElementById('zone-number');
     const zonePanel = document.getElementById('zone-panel');
     const zoneRadiation = document.getElementById('zone-radiation');
@@ -369,15 +375,14 @@
         },
 
         del: function (exit) {
-            let environment = zones[current.zone];
+            let environment = map[pendingEntry.zone];
             delete environment.exits[exit];
-            window.localStorage.setItem('mosh:zones', JSON.stringify(zones));
-            updateEnvironment(environment);
+            updateEnvironment();
+            persistMap();
         },
 
         dump: function () {
-            let dump = {current: current, journal: journal, zones: zones};
-            console.log(JSON.stringify(dump));
+            console.log(JSON.stringify({journal: journal, map: map}));
         },
 
         // TODO move, air, gravity, light, radiation
@@ -434,20 +439,22 @@
     let countdownSound = false;
     let countdownTimer = null;
     let countdownValue = countdownResetValue;
-    let current = null;
-    let journal = null;
-    let zones = null;
+    let encounterRate = 0.1;
+    let pendingEntry = null;
+    let journal = [];
+    let map = {};
 
-    // TOOD exclude blank values from local storage
+    // TODO exit directions
+    // TODO level: common environment, encounter rate
     // TODO extract %enc to separate modal
     // TODO depth gauge
     // TODO combat rounds
     // TODO fatigue/exhaustion
     // TODO fast travel
-    // TODO industrial space: three turns to traverse?
+    // TODO industrial space: three turns to traverse
     // TODO node graph: sigmajs.org
-    // TODO encounter tables
-    // TODO sites/levels
+    // TODO level encounter table
+    // TODO sites: load/save
     // TODO Google Sheets connection?
 
     function advanceClock() {
@@ -459,15 +466,9 @@
             sessionInput.value = '';
         }
 
-        if (! comment && current.encounterType) {
-            comment = current.encounterType;
-        }
+        recordJournalEntry(comment);
 
-        displayJournalEntry(recordJournalEntry(comment || 'NTR'));
-
-        current.encounterType = null;
-        current.time += clockInterval;
-        window.localStorage.setItem('mosh:current', JSON.stringify(current));
+        pendingEntry.time += clockInterval;
         updateClock();
 
         countdownValue = countdownResetValue;
@@ -478,9 +479,9 @@
         displaySessionOutput([
             formatDate(entry.time),
             formatTime(entry.time),
-            (entry.zone ?? '---').padStart(3, '0'),
-            entry.comment,
-        ].join(' '), entry.encounterType ? 'amber' : null);
+            entry.zone ?? '-?-',
+            entry.comment ?? 'NTR',
+        ].join(' '), Object.hasOwn(entry, 'encounter') ? 'amber' : null);
     }
 
     function displaySessionOutput(text, ...classes) {
@@ -496,18 +497,18 @@
     }
 
     function enableButtons() {
-        countdownPause.removeAttribute('disabled');
-        countdownSkip.removeAttribute('disabled');
-        encounterShow.removeAttribute('disabled');
-        zoneExitAdd.removeAttribute('disabled');
+        countdownPause.disabled = false;
+        countdownSkip.disabled = false;
+        encounterShow.disabled = false;
+        zoneExitAdd.disabled = false;
     }
 
     function expireCountdown() {
         suspendCountdown();
 
-        if (Math.random() < current.encounterRate) {
-            current.encounterType = 'E' + Math.floor(Math.random() * 10).toLocaleString().padStart(2, '0');
-            sessionInput.value = current.encounterType;
+        if (Math.random() < encounterRate) {
+            pendingEntry.encounter = Math.floor(Math.random() * 10);
+            sessionInput.value = 'E' + pendingEntry.encounter.toLocaleString().padStart(2, '0');
             sessionInput.focus();
             playTone(660, 1.0, 'sine');
             updateEncounter();
@@ -531,6 +532,10 @@
         }).format(value);
     }
 
+    function persistMap() {
+        window.localStorage.setItem('mosh:map', JSON.stringify(map));
+    }
+
     function playTone(frequency, duration = 1.0, waveform = 'sine') {
         if (audioContext?.state !== 'running') {
             return;
@@ -550,19 +555,20 @@
         oscillator.stop(audioContext.currentTime + duration); // seconds
     }
 
-    function recordJournalEntry(comment) {
-        let entry = {
-            comment: comment,
-            encounterType: current.encounterType,
-            time: current.time,
-            zone: current.zone,
+    function recordJournalEntry(comment = null) {
+        if (comment) {
+            pendingEntry.comment = comment;
         }
 
-        journal.push(entry);
-
+        journal.push(pendingEntry);
         window.localStorage.setItem('mosh:journal', JSON.stringify(journal));
+        displayJournalEntry(pendingEntry);
 
-        return entry;
+        // TODO preserve encounter?
+        pendingEntry = {
+            time: pendingEntry.time,
+            zone: pendingEntry.zone,
+        };
     }
 
     function resumeCountdown() {
@@ -600,9 +606,9 @@
     }
 
     function updateClock() {
-        document.getElementById('clock').innerText = [
-            formatDate(current.time),
-            formatTime(current.time),
+        sessionClock.innerText = [
+            formatDate(pendingEntry.time),
+            formatTime(pendingEntry.time),
         ].join(' ');
     }
 
@@ -620,8 +626,8 @@
             countdownClock.removeAttribute('class');
         }
 
-        let minutes = Math.floor(countdownValue / 60_000);
-        let seconds = Math.floor((countdownValue % 60_000) / 1000);
+        const minutes = Math.floor(countdownValue / 60_000);
+        const seconds = Math.floor((countdownValue % 60_000) / 1000);
 
         countdownClock.innerText = [
             minutes.toLocaleString().padStart(2, '0'),
@@ -640,17 +646,23 @@
     }
 
     function updateEncounter() {
-        countdownPause.setAttribute('disabled', 'disabled');
-        countdownSkip.setAttribute('disabled', 'disabled');
+        countdownPause.disabled = true;
+        countdownSkip.disabled = true;
         encounterPanel.classList.remove('hidden');
         zonePanel.classList.add('hidden');
     }
 
-    function updateEnvironment(environment) {
-        countdownHeader.innerText = environment.title || ('ZONE ' + current.zone);
+    function updateEnvironment() {
+        let environment = map[pendingEntry.zone] ?? {};
+
+        countdownHeader.innerText = [
+            `[${pendingEntry.zone}]`,
+            (environment.title ?? '').toLocaleUpperCase(),
+        ].filter(s => s).join(' ');
+
         zoneExitButtons.innerHTML = '';
 
-        Object.keys(environment.exits).sort().forEach(function (zone) {
+        Object.keys(environment.exits ?? {}).sort().forEach(function (zone) {
             const button = document.createElement('button');
             const icon = document.createElement('code');
             const label = document.createElement('label');
@@ -659,7 +671,7 @@
             button.setAttribute('class', 'cyan');
 
             if (exit.title || exit.type) {
-                button.setAttribute('title', exit.title || exit.type.toLocaleUpperCase());
+                button.setAttribute('title', (exit.title || exit.type).toLocaleUpperCase());
             }
 
             button.setAttribute('value', zone);
@@ -674,28 +686,30 @@
             button.appendChild(label);
 
             button.addEventListener('click', function () {
-                current.zone = zone;
-                updateEnvironment(zones[zone] ?? {});
                 advanceClock();
+                pendingEntry.zone = zone;
+                updateEnvironment();
                 resumeCountdown();
             });
 
             zoneExitButtons.appendChild(button);
         });
 
-        zoneNumber.innerText = current.zone;
+        zoneNumber.innerText = pendingEntry.zone;
 
         updateElement(atmosphereIcon, ...[
             ...icons.atmosphere[environment.atmosphere],
             ...icons.space[environment.space],
         ]);
 
-        updateElement(radiationIcon, ...icons.radiation[environment.radiation]);
+        updateElement(radiationIcon, ...icons.radiation[environment.radiation ?? '']);
         updateElement(gravityIcon, ...icons.gravity[environment.gravity]);
         updateElement(lightIcon, ...icons.light[environment.light]);
     }
 
-    function updateZoneModal(environment) {
+    function updateZoneModal() {
+        let environment = map[pendingEntry.zone] ?? {};
+
         zoneAtmosphere.value = environment.atmosphere ?? 'breathable';
         zoneGravity.value = environment.gravity ?? 'standard';
         zoneLight.value = environment.light ?? 'bright';
@@ -703,7 +717,7 @@
         zoneSpace.value = environment.space ?? 'normal';
         zoneTitle.value = environment.title ?? '';
 
-        zoneEncounterRate.value = current.encounterRate ?? 0.1;
+        zoneEncounterRate.value = encounterRate ?? 0.1;
     }
 
     countdownPause.addEventListener('click', function () {
@@ -728,16 +742,8 @@
         }
     });
 
-    encounterShow.addEventListener('click', function () {
-        current.encounterType = 'ENC';
-        sessionInput.value = current.encounterType;
-        sessionInput.focus();
-        suspendCountdown();
-        updateEncounter();
-    });
-
-    document.getElementById('encounter-dismiss').addEventListener('click', function () {
-        current.encounterType = null;
+    encounterDismiss.addEventListener('click', function () {
+        delete pendingEntry.encounter;
         sessionInput.value = '';
         sessionInput.focus();
         encounterPanel.classList.add('hidden');
@@ -746,12 +752,20 @@
         resumeCountdown();
     });
 
-    document.getElementById('encounter-resolve').addEventListener('click', function () {
+    encounterResolve.addEventListener('click', function () {
         encounterPanel.classList.add('hidden');
         zonePanel.classList.remove('hidden');
         advanceClock();
         enableButtons();
         resumeCountdown();
+    });
+
+    encounterShow.addEventListener('click', function () {
+        pendingEntry.encounter = true;
+        sessionInput.value = 'ENC';
+        sessionInput.focus();
+        suspendCountdown();
+        updateEncounter();
     });
 
     sessionInput,addEventListener('keyup', function (e) {
@@ -769,10 +783,10 @@
                 if (command in commands) {
                     commands[command](... arguments);
                 }
-            } else if (current.encounterType) {
+            } else if (pendingEntry.encounter ?? false) {
                 advanceClock();
             } else {
-                displayJournalEntry(recordJournalEntry(comment));
+                recordJournalEntry(comment);
             }
 
             sessionInput.value = '';
@@ -782,13 +796,13 @@
     });
 
     zoneExitAdd.addEventListener('click', function () {
-        updateZoneModal(zones[current.zone]);
+        updateZoneModal();
         zoneEncounterFields.classList.add('hidden');
         zoneExitFields.classList.remove('hidden');
-        zoneExitTitle.removeAttribute('disabled');
+        zoneExitTitle.disabled = false;
         zoneExitTitle.value = '';
         zoneExitType.value = '';
-        zoneInput.removeAttribute('disabled');
+        zoneInput.disabled = false;
         zoneInput.value = '';
         zoneTitle.value = '';
         zoneModal.classList.remove('hidden');
@@ -796,11 +810,13 @@
         suspendCountdown();
     });
 
-    document.getElementById('zone-modal-cancel').addEventListener('click', function () {
+    // TODO zoneInput.addEventListener('blur') - load existing exit details
+
+    zoneModalCancel.addEventListener('click', function () {
         zoneModal.classList.add('hidden');
     });
 
-    document.getElementById('zone-modal-confirm').addEventListener('click', function () {
+    zoneModalConfirm.addEventListener('click', function () {
         const zone = zoneInput.value.trim().toLocaleUpperCase();
 
         if (! zone) {
@@ -808,57 +824,63 @@
             return;
         }
 
-        const environment = zones[zone] ?? {};
+        const environment = map[zone] ?? {};
+        const title = zoneTitle.value.trim();
 
         environment.atmosphere = zoneAtmosphere.value;
         environment.gravity = zoneGravity.value;
         environment.light = zoneLight.value;
-        environment.radiation = zoneRadiation.value;
         environment.space = zoneSpace.value;
-        environment.title = zoneTitle.value.trim().toLocaleUpperCase();
         environment.exits = environment.exits ?? {};
 
-        zones[zone] = environment;
+        if (zoneRadiation.value) {
+            environment.radiation = zoneRadiation.value;
+        }
 
-        if (zoneExitTitle.disabled) { // edit details of current zone
-            if (! (current.zone ?? false)) {
-                current.zone = zone;
-                window.localStorage.setItem('mosh:current', JSON.stringify(current));
+        if (title) {
+            environment.title = title;
+        }
+        
+        map[zone] = environment;
+
+        if (zoneExitTitle.disabled) { // edit details of current llocation
+            if (! (pendingEntry.zone ?? false)) {
+                pendingEntry.zone = zone;
                 enableButtons();
             }
 
-            current.encounterRate = Number.parseFloat(zoneEncounterRate.value);
-        } else { // add exit from current zone to new/existing zone
-            if (zone === current.zone) { // disallow exit to self
+            encounterRate = Number.parseFloat(zoneEncounterRate.value);
+        } else { // add exit from current location to new/existing location
+            if (zone === pendingEntry.zone) { // disallow exit to self
                 zoneInput.focus();
                 return;
             }
             
-            environment.exits[current.zone] = zones[current.zone].exits[zone] = {
-                title: zoneExitTitle.value.trim().toLocaleUpperCase(),
+            environment.exits[pendingEntry.zone] = map[pendingEntry.zone].exits[zone] = {
+                title: zoneExitTitle.value.trim(),
                 type: zoneExitType.value,
             };
         }
 
-        window.localStorage.setItem('mosh:zones', JSON.stringify(zones));
         zoneModal.classList.add('hidden');
         sessionInput.focus();
 
-        updateEnvironment(zones[current.zone]);
+        updateEnvironment();
         resumeCountdown();
+        persistMap();
     });
 
-    document.getElementById('zone-modal-show').addEventListener('click', function () {
-        updateZoneModal(zones[current.zone] ?? {});
+    zoneModalShow.addEventListener('click', function () {
+        updateZoneModal();
         zoneEncounterFields.classList.remove('hidden');
         zoneExitFields.classList.add('hidden');
-        zoneExitTitle.setAttribute('disabled', 'disabled');
+        zoneExitTitle.disabled = true;
 
-        if (current.zone ?? false) {
-            zoneInput.setAttribute('disabled', 'disabled');
-            zoneInput.value = current.zone;
+        if (pendingEntry.zone ?? false) {
+            zoneInput.disabled = true;
+            zoneInput.value = pendingEntry.zone;
         } else {
-            zoneInput.removeAttribute('disabled');
+            zoneInput.disabled = false;
             zoneInput.value = '';
         }
 
@@ -874,30 +896,30 @@
     });
 
     window.addEventListener('load', function () {
-        let currentData = window.localStorage.getItem('mosh:current');
-        let journalData = window.localStorage.getItem('mosh:journal');
-        let zonesData = window.localStorage.getItem('mosh:zones');
+        journal = JSON.parse(window.localStorage.getItem('mosh:journal') ?? '[]');
 
-        current = currentData ? JSON.parse(currentData) : {
-            encounterRate: 0.1,
-            encounterType: null,
-            time: Math.floor((Date.now() + clockEpochOffset) / clockInterval) * clockInterval,
-            zone: null,
-        };
+        if (journal.length > 0) {
+            pendingEntry = {
+                time: journal[journal.length - 1].time + clockInterval,
+                zone: journal[journal.length - 1].zone,
+            };
+        } else {
+            pendingEntry = {
+                time: Math.floor((Date.now() + clockEpochOffset) / clockInterval) * clockInterval,
+                zone: null,
+            };
+        }
 
-        zones = zonesData ? JSON.parse(zonesData) : {};
-        journal = journalData ? JSON.parse(journalData) : [];
         journal.forEach(entry => displayJournalEntry(entry));
-
         updateClock();
 
-        if (current.zone && current.zone in zones) {
-            let environment = zones[current.zone];
+        map = JSON.parse(window.localStorage.getItem('mosh:map') ?? '{}');
 
-            updateEnvironment(environment);
-            updateZoneModal(environment);
-            enableButtons();
+        if (pendingEntry.zone) {
+            updateEnvironment();
+            updateZoneModal();
             updateCountdown();
+            enableButtons();
         }
     });
 </script>
